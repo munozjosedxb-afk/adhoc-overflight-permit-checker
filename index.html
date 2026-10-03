@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AD HOC Overflight Permit Checker</title>
+<style>
+:root{--bg:#0b1220;--panel:#111a2b;--panel2:#172238;--text:#edf3ff;--muted:#91a0b9;--line:#26344f;--accent:#57a3ff;--good:#36c98f;--warn:#f5b942}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:linear-gradient(135deg,#08101d,#0f192b);color:var(--text);min-height:100vh}
+main{max-width:1120px;margin:0 auto;padding:28px 18px 60px}.header{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:20px}.title{font-size:28px;font-weight:750}.sub{color:var(--muted);font-size:14px;margin-top:4px}.badge{font-size:12px;color:#b9c8df;border:1px solid var(--line);padding:7px 10px;border-radius:999px}
+.card{background:rgba(17,26,43,.94);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 14px 40px rgba(0,0,0,.22);margin-bottom:16px}
+label{display:block;font-size:13px;font-weight:650;margin-bottom:8px}.hint{color:var(--muted);font-size:12px;margin-top:6px}
+textarea{width:100%;min-height:230px;resize:vertical;background:#09111e;color:#eaf1ff;border:1px solid #2b3a57;border-radius:10px;padding:14px;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;outline:none}textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(87,163,255,.12)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}.btn{cursor:pointer;border:1px solid var(--line);background:#17243a;color:var(--text);padding:10px 14px;border-radius:9px;font-weight:700}.btn.primary{background:var(--accent);border-color:var(--accent);color:#071120}.btn:hover{filter:brightness(1.08)}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{background:var(--panel2);border:1px solid var(--line);padding:13px;border-radius:10px}.metric .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}.metric .v{font-size:19px;font-weight:750;margin-top:5px}
+.route{word-break:break-word;color:#cbd7eb;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);font-size:13px}th{color:#aebbd0;font-size:11px;text-transform:uppercase;letter-spacing:.06em}tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:800}.yes{background:rgba(54,201,143,.14);color:#70e8b4}.review{background:rgba(245,185,66,.14);color:#ffd477}
+.notice{color:#ffd477;background:rgba(245,185,66,.08);border:1px solid rgba(245,185,66,.22);padding:11px;border-radius:9px;margin-top:12px;font-size:12px}
+.email{white-space:pre-wrap;background:#09111e;border:1px solid #2b3a57;border-radius:10px;padding:14px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;max-height:400px;overflow:auto}.hidden{display:none}
+@media(max-width:760px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.header{align-items:start;flex-direction:column}}
+</style>
+</head>
+<body>
+<main>
+<div class="header"><div><div class="title">✈️ AD HOC Overflight Permit Checker</div><div class="sub">Paste an ICAO flight plan. Get a permit check and copy-ready request email.</div></div><div class="badge">V1 • Asia rules starter</div></div>
+
+<section class="card">
+<label for="fpl">ICAO FLIGHT PLAN</label>
+<textarea id="fpl" placeholder="Paste the complete ICAO FPL here..."></textarea>
+<div class="controls"><button class="btn primary" id="check">CHECK PERMITS</button><button class="btn" id="sample">LOAD UPS11 TEST</button><button class="btn" id="clear">CLEAR</button></div>
+<div class="hint">Decision-support prototype. REVIEW means the permit rule has not yet been fully verified for operational use.</div>
+</section>
+
+<section class="card hidden" id="results">
+<div class="summary" id="metrics"></div>
+<div style="margin-top:14px"><div style="font-size:12px;color:var(--muted);margin-bottom:6px">ROUTE</div><div class="route" id="route"></div></div>
+<div style="margin-top:18px;overflow:auto"><table><thead><tr><th>Country</th><th>Permit</th><th>Validity</th><th>Operational note</th><th>Action</th></tr></thead><tbody id="tbody"></tbody></table></div>
+<div class="notice">Permit validity and application rules must be verified against the current applicable AIP/AIC before operational use.</div>
+</section>
+
+<section class="card hidden" id="emailCard">
+<label>READY-TO-COPY EMAIL</label>
+<div class="email" id="email"></div>
+<div class="controls"><button class="btn primary" id="copy">COPY EMAIL</button></div>
+</section>
+</main>
+
+<script>
+const RULES = {
+  CHINA:{name:"China",permit:true,validity:"REVIEW",note:"Ad Hoc overflight rule identified; validity requires final source verification.",confidence:"REVIEW"},
+  MYANMAR:{name:"Myanmar",permit:true,validity:"REVIEW",note:"Overflight permission rule identified; validity requires final source verification.",confidence:"REVIEW"},
+  BANGLADESH:{name:"Bangladesh",permit:true,validity:"REVIEW",note:"Current Ad Hoc permit validity requires final source verification.",confidence:"REVIEW"},
+  INDIA:{name:"India",permit:true,validity:"48 HOURS*",note:"Non-scheduled flight-clearance validity is 48 hours in the referenced AIP material.",confidence:"VERIFIED"}
+};
+const SAMPLE='(FPL-UPS11-IS\n-B748/H-SADE3FGHIJ1J2J4J5M1P2RWXYZ/LB1D1\n-RKSI0225\n-N0506F320 BOPTA2Y BOPTA Z51 BEDES Y711 PONIK A593 LAMEN/K0941S0980 A593 PK R343 MADUK W51 LEGIV W164 ADGOL W50 XSH W80 IDGAG A581 QNX W136 XISLI A581 SGM A599 LINSO/M084F340 A201 PPT Q18 BODOG A201 LKN R594 JAL\n-VIDP0643 VOHS\n-PBN/A1B1C1D1L1O1S2 NAV/RNP2 DAT/1FANSER2PDC SUR/260B RSP180 CANMANDATE A2 DOF/260929 REG/N615UP OPR/UPS PER/D\n)';
+function byId(id){return document.getElementById(id)}
+function parseFpl(raw){
+ const s=raw.replace(/\s+/g,' ').trim();
+ const callsign=(s.match(/\(FPL-([A-Z0-9\/]+)/i)||[,'UNKNOWN'])[1];
+ const depM=s.match(/-([A-Z]{4})(\d{4})\s/), dstM=s.match(/-([A-Z]{4})(\d{4})(?:\s|\))/);
+ const aircraft=(s.match(/-([A-Z0-9]{4})\//)||[,''])[1], reg=(s.match(/REG\/([A-Z0-9-]+)/)||[,''])[1], date=(s.match(/DOF\/(\d{6})/)||[,''])[1];
+ const routePart=(s.match(/-N\d{4}F\d{3,4}\s(.+?)\s-[A-Z]{4}\d{4}/)||[,''])[1];
+ return {callsign,origin:(depM||[])[1]||'',destination:(dstM||[])[1]||'',aircraft,reg,date,route:routePart}
+}
+function countriesFromRoute(p){
+ const r=p.route.toUpperCase(),f=[];
+ if(/\b(?:LAMEN|PK|MADUK|LEGIV|ADGOL|IDGAG|QNX|XISLI|SGM|LINSO)\b/.test(r))f.push('CHINA');
+ if(/\b(?:LINSO|ANSOS|LSO|A201|A599)\b/.test(r))f.push('MYANMAR');
+ if(/\b(?:TEBUL|AGARTALA|A201)\b/.test(r))f.push('BANGLADESH');
+ if(p.destination==='VIDP'||/\b(?:ANSOS|LKN|JAL)\b/.test(r))f.push('INDIA');
+ return [...new Set(f)]
+}
+function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+'/'+d.slice(2,4)+'/20'+d.slice(0,2):'[DATE]'}
+function emailFor(country,p){
+ const entry=country==='CHINA'?'LAMEN':country==='MYANMAR'?'LINSO':country==='BANGLADESH'?'[CALCULATED ENTRY]':'[INDIA ENTRY]';
+ const exit=country==='CHINA'?'LINSO':country==='MYANMAR'?'ANSOS':country==='BANGLADESH'?'[CALCULATED EXIT]':'VIDP';
+ return 'Subject: '+p.callsign+' – AD HOC OVERFLIGHT PERMIT REQUEST – '+(p.reg||'[REGISTRATION]')+'\n\nDear Sir/Madam,\n\nPlease arrange an overflight permit for the following AD HOC flight:\n\nOperator: UPS\nFlight: '+p.callsign+'\nAircraft Type: '+(p.aircraft||'[AIRCRAFT]')+'\nRegistration: '+(p.reg||'[REGISTRATION]')+'\nDate of Operation: '+fmtDate(p.date)+'\nOrigin: '+p.origin+'\nDestination: '+p.destination+'\n\nEntry Point: '+entry+'\nEntry Time: [UTC]\n\nExit Point: '+exit+'\nExit Time: [UTC]\n\nRoute:\n'+(p.route||'[ROUTE]')+'\n\nPlease confirm the permit number and validity period, and advise if any additional information or documentation is required.\n\nRegards,\nUPS Flight Dispatch'
+}
+function render(){
+ const p=parseFpl(byId('fpl').value); if(!p.origin){alert('Please paste a valid ICAO flight plan.');return}
+ const countries=countriesFromRoute(p); byId('results').classList.remove('hidden'); byId('emailCard').classList.add('hidden');
+ byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Permits',countries.filter(c=>RULES[c]&&RULES[c].permit).length]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
+ byId('route').textContent=p.route||'No route parsed';
+ byId('tbody').innerHTML=countries.map(c=>{const r=RULES[c];return '<tr><td><strong>'+r.name+'</strong></td><td><span class="pill '+(r.confidence==='VERIFIED'?'yes':'review')+'">'+(r.permit?'YES':'NO')+'</span></td><td>'+r.validity+'</td><td>'+r.note+'</td><td><button class="btn small" onclick="showEmail(\''+c+'\')">GENERATE EMAIL</button></td></tr>'}).join('');
+ if(!countries.length)byId('tbody').innerHTML='<tr><td colspan="5">No V1 Asia rule matched this route.</td></tr>';
+ window.currentParsed=p
+}
+window.showEmail=function(c){byId('email').textContent=emailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
+byId('check').onclick=render;
+byId('sample').onclick=function(){byId('fpl').value=SAMPLE;render()};
+byId('clear').onclick=function(){byId('fpl').value='';byId('results').classList.add('hidden');byId('emailCard').classList.add('hidden')};
+byId('copy').onclick=async function(){try{await navigator.clipboard.writeText(byId('email').textContent);byId('copy').textContent='COPIED';setTimeout(function(){byId('copy').textContent='COPY EMAIL'},1200)}catch(e){alert('Copy is blocked by this browser. Select the email text and copy manually.')}};
+</script>
+</body>
+</html>
