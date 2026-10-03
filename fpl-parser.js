@@ -7,3 +7,11 @@ function parseCoreFpl(raw){
   const reg=(s.match(/REG\/([A-Z0-9-]+)/i)||[])[1]||'';
   return {valid:true,callsign:m[1],origin:m[2],eobt:m[3],speed:m[4],level:m[5],destination:m[6],eta:m[7],date,reg};
 }
+
+
+function parseEetAnchors(eet){
+  return String(eet||'').split(/\s+/).map(x=>{
+    const m=x.match(/^([A-Z0-9]{3,5})(\d{4})$/);
+    return m?{fir:m[1],time:m[2]}:null;
+  }).filter(Boolean);
+}
