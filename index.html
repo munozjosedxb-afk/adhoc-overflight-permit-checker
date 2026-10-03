@@ -145,6 +145,22 @@ function routeTokens(p){return (p.route||'').toUpperCase().split(/\s+/).filter(B
 function crossingFor(country,p){const t=routeTokens(p),cfg=CROSSINGS[country];if(!cfg)return {entry:'REVIEW',exit:'REVIEW',entryTime:'REVIEW',exitTime:'REVIEW',confidence:'REVIEW'};const find=a=>{for(const n of a){const i=t.indexOf(n);if(i>=0)return {name:n,index:i}}return null};const en=find(cfg.entry),ex=find(cfg.exit);if(!en||!ex||ex.index<=en.index)return {entry:en?en.name:'REVIEW',exit:ex?ex.name:'REVIEW',entryTime:'REVIEW',exitTime:'REVIEW',confidence:'REVIEW'};return {entry:en.name,exit:ex.name,entryTime:'REVIEW',exitTime:'REVIEW',confidence:'ROUTE POINTS IDENTIFIED'};}
 function permitBlock(country,p){return crossingFor(country,p)}
 function emailFor(country,p){const r=RULES[country],x=permitBlock(country,p),date=fmtDate(p.date),dep=p.origin||'[DEP]',dst=p.destination||'[DEST]';return r.name.toUpperCase()+'\\n\\n'+p.callsign+' '+dep+' [EOBT] DAY [DAY] '+dst+' [ETA] DAY [DAY] '+date+' '+(p.aircraft||'[ACFT]')+'\\n\\n   ENTRY POINT '+x.entry+' AT '+x.entryTime+' EXIT POINT '+x.exit+' AT '+x.exitTime+'\\n\\n   AIRWAY / FLIGHT LEVEL: REVIEW — extract from dispatch FPL before sending\\n\\n   ROUTE DATA STATUS: '+x.confidence+'\\n';}
+function permitValidityStatus(country,issuedAt,revisedEobt){
+ const r=RULES[country]||{};
+ const v=String(r.validity||'').toUpperCase();
+ if(!issuedAt) return {status:'REVIEW',reason:'Permit issue time not entered'};
+ if(!v || v==='REVIEW' || v.includes('ADC')) return {status:'REVIEW',reason:'Permit validity not verified'};
+ const h=(v.match(/(\\d+)\\s*HOUR/)||[])[1];
+ if(!h) return {status:'REVIEW',reason:'Permit validity format not recognized'};
+ const start=new Date(issuedAt);
+ const check=new Date(revisedEobt||issuedAt);
+ if(isNaN(start)||isNaN(check)) return {status:'REVIEW',reason:'Invalid permit/revised EOBT time'};
+ const expires=new Date(start.getTime()+Number(h)*3600000);
+ return check<=expires
+   ? {status:'VALID',reason:'Within verified '+h+' hour validity',expires:expires.toISOString()}
+   : {status:'EXPIRED',reason:'Outside verified '+h+' hour validity',expires:expires.toISOString()};
+}
+
 function destinationCountry(icao){const m={WSSS:'SINGAPORE',VIDP:'INDIA',VOBL:'INDIA',RPLC:'PHILIPPINES',ZSPD:'CHINA',RKSI:'SOUTH_KOREA',ZGSZ:'CHINA',VVNB:'VIETNAM',VTBS:'THAILAND'};return m[icao]||null;}
 function render(){
  const p=parseFpl(byId('fpl').value); if(!p.origin){alert('Please paste a valid ICAO flight plan.');return}
