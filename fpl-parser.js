@@ -15,3 +15,14 @@ function parseEetAnchors(eet){
     return m?{fir:m[1],time:m[2]}:null;
   }).filter(Boolean);
 }
+
+
+function interpolateEetTime(anchorA, anchorB, fraction){
+  if(!anchorA || !anchorB) return 'REVIEW';
+  const toMin=t=>parseInt(t.slice(0,2),10)*60+parseInt(t.slice(2),10);
+  const a=toMin(anchorA.time), b=toMin(anchorB.time);
+  let delta=b-a; if(delta<0) delta+=1440;
+  const f=Math.max(0,Math.min(1,Number(fraction)||0));
+  const total=(a+delta*f)%1440;
+  return String(Math.floor(total/60)).padStart(2,'0')+String(Math.round(total%60)).padStart(2,'0');
+}
