@@ -108,7 +108,7 @@ const RULES={
  TURKMENISTAN:{name:"Turkmenistan",firs:["UTAA"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
  UAE:{name:"United Arab Emirates",firs:["OMAE"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
  UZBEKISTAN:{name:"Uzbekistan",firs:["UTTT"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
- VIETNAM:{name:"Vietnam",firs:["VVVV"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ VIETNAM:{name:"Vietnam",firs:["VVVV","VVHM","VVHN"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
  YEMEN:{name:"Yemen",firs:["OYSC"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"}
 };
 
@@ -124,7 +124,7 @@ function parseFpl(raw){
  const reg=(s.match(/REG\/([A-Z0-9-]+)/)||[,''])[1];
  const date=(s.match(/DOF\/(\d{6})/)||[,''])[1];
  const routePart=(s.match(/-N\d{4}F\d{3,4}\s(.+?)\s-[A-Z]{4}\d{4}/)||[,''])[1];
- const eet=(s.match(/EET\/([^\s\)]+)/)||[,''])[1];
+ const eet=(s.match(/EET\/([^\)]+)/)||[,''])[1].trim();
  return {callsign,origin:(depM||[])[1]||'',destination:(dstM||[])[1]||'',aircraft,reg,date,route:routePart,eet};
 }
 function detectFirs(p){
