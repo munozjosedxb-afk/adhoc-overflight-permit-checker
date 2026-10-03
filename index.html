@@ -143,21 +143,20 @@ function routeCountryOverrides(p){
 function countryList(p){return [...new Set([...detectFirs(p),...routeCountryOverrides(p)])]}
 function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+'/'+d.slice(2,4)+'/20'+d.slice(0,2):'[DATE]'}
 function pill(r){const cls=r.status==='YES'?'yes':r.status==='NO'?'na':'review';return '<span class="pill '+cls+'">'+r.status+'</span>'}
-function emailFor(country,p){
- const r=RULES[country];
- const entry=country==='CHINA'?'LAMEN':country==='MYANMAR'?'LINSO':country==='BANGLADESH'?'[CALCULATED ENTRY]':country==='INDIA'?'[INDIA ENTRY]':'[CALCULATED ENTRY]';
- const exit=country==='CHINA'?'LINSO':country==='MYANMAR'?'ANSOS':country==='BANGLADESH'?'[CALCULATED EXIT]':country==='INDIA'?'VIDP':'[CALCULATED EXIT]';
- const date=fmtDate(p.date); const dep=p.origin||'[DEP]'; const dst=p.destination||'[DEST]';
- return r.name.toUpperCase()+'\n\n'+p.callsign+' '+dep+' [EOBT] DAY [DAY] '+dst+' [ETA] DAY [DAY] '+date+' '+(p.aircraft||'[ACFT]')+'\n\n   ENTRY POINT '+entry+' AT [UTC] EXIT POINT '+exit+' AT [UTC]\n\n   AIRWAY [AIRWAY(S)] FLIGHT LEVEL [FL]\n';
-}
+const CROSSINGS={CHINA:{entry:['LAMEN'],exit:['LINSO']},MYANMAR:{entry:['LINSO'],exit:['ANSOS']},INDIA:{entry:['LKN'],exit:['VIDP']}};
+function routeTokens(p){return (p.route||'').toUpperCase().split(/\s+/).filter(Boolean)}
+function crossingFor(country,p){const t=routeTokens(p),cfg=CROSSINGS[country];if(!cfg)return {entry:'REVIEW',exit:'REVIEW',entryTime:'REVIEW',exitTime:'REVIEW',confidence:'REVIEW'};const find=a=>{for(const n of a){const i=t.indexOf(n);if(i>=0)return {name:n,index:i}}return null};const en=find(cfg.entry),ex=find(cfg.exit);if(!en||!ex||ex.index<=en.index)return {entry:en?en.name:'REVIEW',exit:ex?ex.name:'REVIEW',entryTime:'REVIEW',exitTime:'REVIEW',confidence:'REVIEW'};return {entry:en.name,exit:ex.name,entryTime:'REVIEW',exitTime:'REVIEW',confidence:'ROUTE POINTS IDENTIFIED'};}
+function permitBlock(country,p){return crossingFor(country,p)}
+function emailFor(country,p){const r=RULES[country],x=permitBlock(country,p),date=fmtDate(p.date),dep=p.origin||'[DEP]',dst=p.destination||'[DEST]';return r.name.toUpperCase()+'\\n\\n'+p.callsign+' '+dep+' [EOBT] DAY [DAY] '+dst+' [ETA] DAY [DAY] '+date+' '+(p.aircraft||'[ACFT]')+'\\n\\n   ENTRY POINT '+x.entry+' AT '+x.entryTime+' EXIT POINT '+x.exit+' AT '+x.exitTime+'\\n\\n   AIRWAY / FLIGHT LEVEL: REVIEW — extract from dispatch FPL before sending\\n\\n   ROUTE DATA STATUS: '+x.confidence+'\\n';}
+function destinationCountry(icao){const m={WSSS:'SINGAPORE',VIDP:'INDIA',VOBL:'INDIA',RPLC:'PHILIPPINES',ZSPD:'CHINA',RKSI:'SOUTH_KOREA',ZGSZ:'CHINA',VVNB:'VIETNAM',VTBS:'THAILAND'};return m[icao]||null;}
 function render(){
  const p=parseFpl(byId('fpl').value); if(!p.origin){alert('Please paste a valid ICAO flight plan.');return}
  const countries=countryList(p); window.currentParsed=p; window.currentCountries=countries;
  byId('results').classList.remove('hidden');byId('delayCard').classList.remove('hidden');byId('emailCard').classList.add('hidden');
- const permits=countries.filter(c=>RULES[c].status==='YES').length,review=countries.filter(c=>RULES[c].status==='REVIEW').length,landing=countries.filter(c=>c===p.destination).length;
+ const permits=countries.filter(c=>RULES[c].status==='YES').length,review=countries.filter(c=>RULES[c].status==='REVIEW').length;
  byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Countries',countries.length],['Overflight / Review',permits+' / '+review]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
  byId('route').textContent=p.route||'No route parsed';
- byId('tbody').innerHTML=countries.length?countries.map(c=>{const r=RULES[c];return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td>'+r.validity+'</td><td>'+r.lead+'</td><td>'+(r.entryExit?'Required / verify':'—')+'</td><td>'+r.note+'</td><td>'+r.source+'</td><td><button class="btn small" onclick="showEmail(\''+c+'\')">EMAIL</button></td></tr>'}).join(''):'<tr><td colspan="8">No Asia FIR/country match detected. Manual route review still recommended.</td></tr>';
+ byId('tbody').innerHTML=countries.length?countries.map(c=>{const r=RULES[c],x=permitBlock(c,p),landing=(p.destination&&c===destinationCountry(p.destination))?'REVIEW':'NO';return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(landing==='REVIEW'?'review':'na')+'">'+landing+'</span></td><td>'+r.validity+'</td><td>'+r.lead+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.confidence+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td><button class="btn small" onclick="showEmail(\\''+c+'\\')">EMAIL</button></td></tr>'}).join(''):'<tr><td colspan="9">No Asia FIR/country match detected. Manual route review still recommended.</td></tr>';
 }
 window.showEmail=function(c){byId('email').textContent=emailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
 function checkDelay(){
