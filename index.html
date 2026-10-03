@@ -43,7 +43,11 @@ textarea,input{width:100%;background:#09111e;color:#eaf1ff;border:1px solid #2b3
 <div><label for="eobt">Planned EOBT (UTC)</label><input id="eobt" type="datetime-local"><div class="hint">Optional. Used to assess delay-sensitive rules.</div></div>
 <div><label for="actual">Revised EOBT (UTC)</label><input id="actual" type="datetime-local"><div class="hint">Optional. Enter the new EOBT after a delay.</div></div>
 </div>
-<div id="delayResult" class="statusbox" style="margin-top:12px">Enter both times to calculate the delay. Country-specific permit expiry still requires the actual issued permit validity.</div>
+<div class="grid2" style="margin-top:10px">
+<div><label for="permitCountry">Permit country</label><select id="permitCountry"></select><div class="hint">Select the permit you already have.</div></div>
+<div><label for="permitIssued">Permit issued (UTC)</label><input id="permitIssued" type="datetime-local"><div class="hint">Required for a validity check.</div></div>
+</div>
+<div id="delayResult" class="statusbox" style="margin-top:12px">Enter the revised EOBT and permit issue time to check whether the permit remains valid.</div>
 </section>
 
 <section class="card hidden" id="emailCard">
@@ -174,9 +178,14 @@ function render(){
 window.showEmail=function(c){byId('email').textContent=emailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
 function checkDelay(){
  const a=byId('eobt').value,b=byId('actual').value;
+ const pc=byId('permitCountry').value,pi=byId('permitIssued').value;
+ const validity=permitValidityStatus(pc,pi,b);
  if(!a||!b){byId('delayResult').textContent='Enter both times to calculate the delay. Country-specific permit expiry still requires the actual issued permit validity.';return}
  const mins=Math.round((new Date(b)-new Date(a))/60000);
  let html='<strong>Delay: '+mins+' minutes ('+(mins/60).toFixed(1)+' hours)</strong><br>';
+ html+='<strong>Permit validity: '+validity.status+'</strong> — '+validity.reason;
+ if(validity.expires) html+=' — expires '+validity.expires+'<br>';
+ else html+='<br>';
  if(mins<0)html+='<span class="warn">Revised EOBT is earlier than planned. Verify the permit timing against the issued authorization.</span>';
  else if(mins>120)html+='<span class="warn">More than 2 hours: Bangladesh ADC specifically requires a fresh ADC under the cited current AIP material. Other countries must be checked against their issued permit validity.</span>';
  else html+='<span class="ok">No Bangladesh >2-hour ADC trigger detected. Still verify every permit against its actual validity window.</span>';
@@ -186,7 +195,9 @@ byId('check').onclick=render;
 byId('sample').onclick=function(){byId('fpl').value=SAMPLE;render()};
 byId('clear').onclick=function(){byId('fpl').value='';byId('results').classList.add('hidden');byId('delayCard').classList.add('hidden');byId('emailCard').classList.add('hidden')};
 byId('copy').onclick=async function(){try{await navigator.clipboard.writeText(byId('email').textContent);byId('copy').textContent='COPIED';setTimeout(()=>byId('copy').textContent='COPY EMAIL',1200)}catch(e){alert('Copy is blocked by this browser. Select the email text and copy manually.')}};
-byId('eobt').onchange=checkDelay;byId('actual').onchange=checkDelay;
+const permitCountry=byId('permitCountry');
+Object.keys(RULES).sort().forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=RULES[k].name;permitCountry.appendChild(o)});
+permitCountry.onchange=checkDelay;byId('permitIssued').onchange=checkDelay;byId('eobt').onchange=checkDelay;byId('actual').onchange=checkDelay;
 </script>
 </body>
 </html>
