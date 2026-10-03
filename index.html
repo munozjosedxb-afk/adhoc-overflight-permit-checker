@@ -117,16 +117,12 @@ const SAMPLE='(FPL-UPS11-IS\n-B748/H-SADE3FGHIJ1J2J4J5M1P2RWXYZ/LB1D1\n-RKSI0225
 
 function byId(id){return document.getElementById(id)}
 function parseFpl(raw){
- const s=raw.replace(/\s+/g,' ').trim();
- const callsign=(s.match(/\(FPL-([A-Z0-9\/]+)/i)||[,'UNKNOWN'])[1];
- const depM=s.match(/-([A-Z]{4})(\d{4})\s/);
- const dstM=s.match(/-([A-Z]{4})(\d{4})(?:\s|\))/);
- const aircraft=(s.match(/-([A-Z0-9]{4})\//)||[,''])[1];
- const reg=(s.match(/REG\/([A-Z0-9-]+)/)||[,''])[1];
- const date=(s.match(/DOF\/(\d{6})/)||[,''])[1];
- const routePart=(s.match(/-N\d{4}F\d{3,4}\s(.+?)\s-[A-Z]{4}\d{4}/)||[,''])[1];
- const eet=(s.match(/EET\/([^\)]+)/)||[,''])[1].trim();
- return {callsign,origin:(depM||[])[1]||'',destination:(dstM||[])[1]||'',aircraft,reg,date,route:routePart,eet};
+ const p=parseCoreFpl(raw); if(!p.valid) return p;
+ const s=String(raw||'').replace(/\s+/g,' ').trim();
+ const routePart=(s.match(/-N\d{4}F\d{3,4}\s(.+?)\s-[A-Z]{4}\d{4}/)||[,''])[1]||'';
+ const eet=(s.match(/EET\/([^\)]+)/)||[,''])[1]||'';
+ const aircraft=(s.match(/-([A-Z0-9]{4})\//)||[,''])[1]||'';
+ return {...p,aircraft,route:routePart,eet};
 }
 function detectFirs(p){
  const all=(p.eet+' '+p.route).toUpperCase();
