@@ -33,8 +33,8 @@ textarea,input{width:100%;background:#09111e;color:#eaf1ff;border:1px solid #2b3
 <section class="card hidden" id="results">
 <div class="summary" id="metrics"></div>
 <div style="margin-top:14px"><div style="font-size:12px;color:var(--muted);margin-bottom:6px">ROUTE</div><div class="route" id="route"></div></div>
-<div style="margin-top:18px;overflow:auto"><table><thead><tr><th>Country</th><th>Screen</th><th>Validity</th><th>Lead time</th><th>Entry / exit</th><th>Operational note</th><th>Source status</th><th></th></tr></thead><tbody id="tbody"></tbody></table></div>
-<div class="notice">A route crossing a FIR is not automatically the same thing as a sovereign overflight-permit requirement. This tool separates screening from final operational verification.</div>
+<div style="margin-top:18px;overflow:auto"><table><thead><tr><th>Country</th><th>Overflight</th><th>Landing</th><th>Validity</th><th>Lead time</th><th>Entry / exit</th><th>Operational note</th><th>Source status</th><th></th></tr></thead><tbody id="tbody"></tbody></table></div>
+<div class="notice">OVERFLIGHT and LANDING are separate permit checks. YES means the permit request can be generated. REVIEW means the requirement or validity still needs operational verification; the tool will not invent a permit validity period.</div>
 </section>
 
 <section class="card hidden" id="delayCard">
@@ -147,14 +147,15 @@ function emailFor(country,p){
  const r=RULES[country];
  const entry=country==='CHINA'?'LAMEN':country==='MYANMAR'?'LINSO':country==='BANGLADESH'?'[CALCULATED ENTRY]':country==='INDIA'?'[INDIA ENTRY]':'[CALCULATED ENTRY]';
  const exit=country==='CHINA'?'LINSO':country==='MYANMAR'?'ANSOS':country==='BANGLADESH'?'[CALCULATED EXIT]':country==='INDIA'?'VIDP':'[CALCULATED EXIT]';
- return 'Subject: '+p.callsign+' – AD HOC OVERFLIGHT PERMIT REQUEST – '+(p.reg||'[REGISTRATION]')+' / '+r.name+'\n\nDear Sir/Madam,\n\nPlease arrange/confirm the required AD HOC overflight authorization for the following flight:\n\nOperator: UPS\nFlight: '+p.callsign+'\nAircraft Type: '+(p.aircraft||'[AIRCRAFT]')+'\nRegistration: '+(p.reg||'[REGISTRATION]')+'\nDate of Operation: '+fmtDate(p.date)+'\nOrigin: '+p.origin+'\nDestination: '+p.destination+'\n\nPermit / entry point: '+entry+'\nEstimated entry time UTC: [UTC]\n\nPermit / exit point: '+exit+'\nEstimated exit time UTC: [UTC]\n\nATS Route:\n'+(p.route||'[ROUTE]')+'\n\nPlease confirm the authorization number, validity period, and whether any additional documents or route details are required.\n\nRegards,\nUPS Flight Dispatch';
+ const date=fmtDate(p.date); const dep=p.origin||'[DEP]'; const dst=p.destination||'[DEST]';
+ return r.name.toUpperCase()+'\n\n'+p.callsign+' '+dep+' [EOBT] DAY [DAY] '+dst+' [ETA] DAY [DAY] '+date+' '+(p.aircraft||'[ACFT]')+'\n\n   ENTRY POINT '+entry+' AT [UTC] EXIT POINT '+exit+' AT [UTC]\n\n   AIRWAY [AIRWAY(S)] FLIGHT LEVEL [FL]\n';
 }
 function render(){
  const p=parseFpl(byId('fpl').value); if(!p.origin){alert('Please paste a valid ICAO flight plan.');return}
  const countries=countryList(p); window.currentParsed=p; window.currentCountries=countries;
  byId('results').classList.remove('hidden');byId('delayCard').classList.remove('hidden');byId('emailCard').classList.add('hidden');
- const permits=countries.filter(c=>RULES[c].status==='YES').length,review=countries.filter(c=>RULES[c].status==='REVIEW').length;
- byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Asia matches',countries.length],['Verified / Review',permits+' / '+review]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
+ const permits=countries.filter(c=>RULES[c].status==='YES').length,review=countries.filter(c=>RULES[c].status==='REVIEW').length,landing=countries.filter(c=>c===p.destination).length;
+ byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Countries',countries.length],['Overflight / Review',permits+' / '+review]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
  byId('route').textContent=p.route||'No route parsed';
  byId('tbody').innerHTML=countries.length?countries.map(c=>{const r=RULES[c];return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td>'+r.validity+'</td><td>'+r.lead+'</td><td>'+(r.entryExit?'Required / verify':'—')+'</td><td>'+r.note+'</td><td>'+r.source+'</td><td><button class="btn small" onclick="showEmail(\''+c+'\')">EMAIL</button></td></tr>'}).join(''):'<tr><td colspan="8">No Asia FIR/country match detected. Manual route review still recommended.</td></tr>';
 }
