@@ -5,92 +5,171 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AD HOC Overflight Permit Checker</title>
 <style>
-:root{--bg:#0b1220;--panel:#111a2b;--panel2:#172238;--text:#edf3ff;--muted:#91a0b9;--line:#26344f;--accent:#57a3ff;--good:#36c98f;--warn:#f5b942}
+:root{--bg:#0b1220;--panel:#111a2b;--panel2:#172238;--text:#edf3ff;--muted:#91a0b9;--line:#26344f;--accent:#57a3ff;--good:#36c98f;--warn:#f5b942;--bad:#ef6b73}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:linear-gradient(135deg,#08101d,#0f192b);color:var(--text);min-height:100vh}
-main{max-width:1120px;margin:0 auto;padding:28px 18px 60px}.header{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:20px}.title{font-size:28px;font-weight:750}.sub{color:var(--muted);font-size:14px;margin-top:4px}.badge{font-size:12px;color:#b9c8df;border:1px solid var(--line);padding:7px 10px;border-radius:999px}
+main{max-width:1220px;margin:0 auto;padding:28px 18px 60px}.header{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:20px}.title{font-size:28px;font-weight:750}.sub{color:var(--muted);font-size:14px;margin-top:4px}.badge{font-size:12px;color:#b9c8df;border:1px solid var(--line);padding:7px 10px;border-radius:999px}
 .card{background:rgba(17,26,43,.94);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 14px 40px rgba(0,0,0,.22);margin-bottom:16px}
 label{display:block;font-size:13px;font-weight:650;margin-bottom:8px}.hint{color:var(--muted);font-size:12px;margin-top:6px}
-textarea{width:100%;min-height:230px;resize:vertical;background:#09111e;color:#eaf1ff;border:1px solid #2b3a57;border-radius:10px;padding:14px;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;outline:none}textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(87,163,255,.12)}
+textarea,input{width:100%;background:#09111e;color:#eaf1ff;border:1px solid #2b3a57;border-radius:10px;padding:12px;outline:none}textarea{min-height:230px;resize:vertical;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}input{font-size:14px}textarea:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(87,163,255,.12)}
 .controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}.btn{cursor:pointer;border:1px solid var(--line);background:#17243a;color:var(--text);padding:10px 14px;border-radius:9px;font-weight:700}.btn.primary{background:var(--accent);border-color:var(--accent);color:#071120}.btn:hover{filter:brightness(1.08)}
-.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{background:var(--panel2);border:1px solid var(--line);padding:13px;border-radius:10px}.metric .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}.metric .v{font-size:19px;font-weight:750;margin-top:5px}
-.route{word-break:break-word;color:#cbd7eb;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
-table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);font-size:13px}th{color:#aebbd0;font-size:11px;text-transform:uppercase;letter-spacing:.06em}tr:last-child td{border-bottom:0}
-.pill{display:inline-block;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:800}.yes{background:rgba(54,201,143,.14);color:#70e8b4}.review{background:rgba(245,185,66,.14);color:#ffd477}
-.notice{color:#ffd477;background:rgba(245,185,66,.08);border:1px solid rgba(245,185,66,.22);padding:11px;border-radius:9px;margin-top:12px;font-size:12px}
-.email{white-space:pre-wrap;background:#09111e;border:1px solid #2b3a57;border-radius:10px;padding:14px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;max-height:400px;overflow:auto}.hidden{display:none}
-@media(max-width:760px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.header{align-items:start;flex-direction:column}}
+.summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.metric{background:var(--panel2);border:1px solid var(--line);padding:13px;border-radius:10px}.metric .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}.metric .v{font-size:19px;font-weight:750;margin-top:5px}
+.route{word-break:break-word;color:#cbd7eb;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px 9px;border-bottom:1px solid var(--line);font-size:12px;vertical-align:top}th{color:#aebbd0;font-size:10px;text-transform:uppercase;letter-spacing:.06em}tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:800}.yes{background:rgba(54,201,143,.14);color:#70e8b4}.review{background:rgba(245,185,66,.14);color:#ffd477}.na{background:rgba(145,160,185,.12);color:#aebbd0}
+.notice{color:#ffd477;background:rgba(245,185,66,.08);border:1px solid rgba(245,185,66,.22);padding:11px;border-radius:9px;margin-top:12px;font-size:12px}.email{white-space:pre-wrap;background:#09111e;border:1px solid #2b3a57;border-radius:10px;padding:14px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;max-height:430px;overflow:auto}.hidden{display:none}.sectionTitle{font-size:15px;font-weight:750;margin-bottom:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.statusbox{padding:12px;border:1px solid var(--line);border-radius:10px;background:#0d1727}.statusbox strong{font-size:13px}.small{font-size:10px;padding:7px 9px}.source{color:#8fa1bb;font-size:10px;margin-top:5px}.ok{color:#70e8b4}.warn{color:#ffd477}
+@media(max-width:900px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}.header{align-items:start;flex-direction:column}table{min-width:900px}}
 </style>
 </head>
 <body>
 <main>
-<div class="header"><div><div class="title">✈️ AD HOC Overflight Permit Checker</div><div class="sub">Paste an ICAO flight plan. Get a permit check and copy-ready request email.</div></div><div class="badge">V1 • Asia rules starter</div></div>
+<div class="header"><div><div class="title">✈️ AD HOC Overflight Permit Checker</div><div class="sub">Asia edition • paste a complete ICAO flight plan and screen the route for permit/clearance requirements.</div></div><div class="badge">V2 • ASIA DATABASE</div></div>
 
 <section class="card">
 <label for="fpl">ICAO FLIGHT PLAN</label>
 <textarea id="fpl" placeholder="Paste the complete ICAO FPL here..."></textarea>
-<div class="controls"><button class="btn primary" id="check">CHECK PERMITS</button><button class="btn" id="sample">LOAD UPS11 TEST</button><button class="btn" id="clear">CLEAR</button></div>
-<div class="hint">Decision-support prototype. REVIEW means the permit rule has not yet been fully verified for operational use.</div>
+<div class="controls"><button class="btn primary" id="check">CHECK ASIA</button><button class="btn" id="sample">LOAD UPS11 TEST</button><button class="btn" id="clear">CLEAR</button></div>
+<div class="hint">Ad Hoc decision support. REVIEW means the current country rule still requires operational verification from the applicable AIP/AIC/CAA.</div>
 </section>
 
 <section class="card hidden" id="results">
 <div class="summary" id="metrics"></div>
 <div style="margin-top:14px"><div style="font-size:12px;color:var(--muted);margin-bottom:6px">ROUTE</div><div class="route" id="route"></div></div>
-<div style="margin-top:18px;overflow:auto"><table><thead><tr><th>Country</th><th>Permit</th><th>Validity</th><th>Operational note</th><th>Action</th></tr></thead><tbody id="tbody"></tbody></table></div>
-<div class="notice">Permit validity and application rules must be verified against the current applicable AIP/AIC before operational use.</div>
+<div style="margin-top:18px;overflow:auto"><table><thead><tr><th>Country</th><th>Screen</th><th>Validity</th><th>Lead time</th><th>Entry / exit</th><th>Operational note</th><th>Source status</th><th></th></tr></thead><tbody id="tbody"></tbody></table></div>
+<div class="notice">A route crossing a FIR is not automatically the same thing as a sovereign overflight-permit requirement. This tool separates screening from final operational verification.</div>
+</section>
+
+<section class="card hidden" id="delayCard">
+<div class="sectionTitle">⏱ Permit / clearance delay check</div>
+<div class="grid2">
+<div><label for="eobt">Planned EOBT (UTC)</label><input id="eobt" type="datetime-local"><div class="hint">Optional. Used to assess delay-sensitive rules.</div></div>
+<div><label for="actual">Revised EOBT (UTC)</label><input id="actual" type="datetime-local"><div class="hint">Optional. Enter the new EOBT after a delay.</div></div>
+</div>
+<div id="delayResult" class="statusbox" style="margin-top:12px">Enter both times to calculate the delay. Country-specific permit expiry still requires the actual issued permit validity.</div>
 </section>
 
 <section class="card hidden" id="emailCard">
-<label>READY-TO-COPY EMAIL</label>
+<label>READY-TO-COPY PERMIT REQUEST</label>
 <div class="email" id="email"></div>
 <div class="controls"><button class="btn primary" id="copy">COPY EMAIL</button></div>
 </section>
 </main>
 
 <script>
-const RULES = {
-  CHINA:{name:"China",permit:true,validity:"REVIEW",note:"Ad Hoc overflight rule identified; validity requires final source verification.",confidence:"REVIEW"},
-  MYANMAR:{name:"Myanmar",permit:true,validity:"REVIEW",note:"Overflight permission rule identified; validity requires final source verification.",confidence:"REVIEW"},
-  BANGLADESH:{name:"Bangladesh",permit:true,validity:"REVIEW",note:"Current Ad Hoc permit validity requires final source verification.",confidence:"REVIEW"},
-  INDIA:{name:"India",permit:true,validity:"48 HOURS*",note:"Non-scheduled flight-clearance validity is 48 hours in the referenced AIP material.",confidence:"VERIFIED"}
+/*
+ ASIA RULE DATABASE
+ Source confidence is intentionally conservative.
+ VERIFIED = directly supported by current/identified authoritative source material.
+ REVIEW = framework/routing match exists but permit validity/lead-time has not been fully verified.
+*/
+const RULES={
+ AFGHANISTAN:{name:"Afghanistan",firs:["OAKX"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Asia coverage added; current Ad Hoc overflight rule requires verification.",source:"AIP/CAA review required"},
+ ARMENIA:{name:"Armenia",firs:["UDDD"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ AZERBAIJAN:{name:"Azerbaijan",firs:["UBBA"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ BAHRAIN:{name:"Bahrain",firs:["OBBB"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ BANGLADESH:{name:"Bangladesh",firs:["VGFR"],status:"YES",validity:"ADC route validity",lead:"Before entry",entryExit:true,note:"Foreign aircraft overflying Bangladesh ADIZ require ADC. Current AIP states a fresh ADC is required when departure is delayed more than 2 hours.",source:"CAAB AIP • ADC delay rule verified"},
+ BHUTAN:{name:"Bhutan",firs:["VQPR"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ BRUNEI:{name:"Brunei",firs:["WBFC"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ CAMBODIA:{name:"Cambodia",firs:["VDPF"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ CHINA:{name:"China",firs:["ZSHA","ZHWH","ZGZU","ZPKM","ZJSA","ZLHW","ZLLL","ZBPE","ZYSH"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"China Ad Hoc overflight workflow added; exact permit validity/lead time remains subject to current CAAC/AIP verification.",source:"CAAC/AIP review required"},
+ GEORGIA:{name:"Georgia",firs:["UGGG"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ INDIA:{name:"India",firs:["VIDF","VECF","VYYF","VECC","VABB","VOMF","VCCC"],status:"YES",validity:"48 hours",lead:"1–3 working days* ",entryExit:true,note:"For non-scheduled flights into/from/over Indian territory, DGCA approval is required; the cited AIP states flight clearance is valid 48 hours. Notice period varies by flight type/origin.",source:"AAI eAIP • DGCA non-scheduled procedure"},
+ INDONESIA:{name:"Indonesia",firs:["WIIF","WAAF","WIIX"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ IRAN:{name:"Iran",firs:["OIIX"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ IRAQ:{name:"Iraq",firs:["ORBB"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ ISRAEL:{name:"Israel",firs:["LLLL"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ JAPAN:{name:"Japan",firs:["RJJJ","RJTT"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ JORDAN:{name:"Jordan",firs:["OJAC"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ KAZAKHSTAN:{name:"Kazakhstan",firs:["UAAA","UACC","UATT","UAKK","UARR"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ KUWAIT:{name:"Kuwait",firs:["OKAC"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ KYRGYZSTAN:{name:"Kyrgyzstan",firs:["UACC","UAII"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ LAOS:{name:"Laos",firs:["VLVT"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ LEBANON:{name:"Lebanon",firs:["OLBB"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ MALAYSIA:{name:"Malaysia",firs:["WMFC"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ MALDIVES:{name:"Maldives",firs:["VRMF"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ MONGOLIA:{name:"Mongolia",firs:["ZMUB"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ MYANMAR:{name:"Myanmar",firs:["VYYF","VYYY","VGFR"],status:"YES",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Foreign-aircraft overflight permission framework identified. Exact Ad Hoc validity/lead time remains under verification.",source:"Myanmar AIC/AIP review required"},
+ NEPAL:{name:"Nepal",firs:["VNSM"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ NORTH_KOREA:{name:"North Korea",firs:["ZKKP"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ OMAN:{name:"Oman",firs:["OOMM"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ PAKISTAN:{name:"Pakistan",firs:["OPKR"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ PHILIPPINES:{name:"Philippines",firs:["RPHI"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ QATAR:{name:"Qatar",firs:["OTDF"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ SAUDI_ARABIA:{name:"Saudi Arabia",firs:["OEJD","OERK"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ SINGAPORE:{name:"Singapore",firs:["WSJC"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ SOUTH_KOREA:{name:"South Korea",firs:["RKRR"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ SRI_LANKA:{name:"Sri Lanka",firs:["VCCC"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ TAIWAN:{name:"Taiwan",firs:["RCAA"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ TAJIKISTAN:{name:"Tajikistan",firs:["UTDD"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ THAILAND:{name:"Thailand",firs:["VTBB"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ TIMOR_LESTE:{name:"Timor-Leste",firs:["WAAF"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ TURKEY:{name:"Türkiye",firs:["LTAA"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Transcontinental coverage. Verify the applicable Turkish AIP/CAA rule for the specific route.",source:"AIP/CAA review required"},
+ TURKMENISTAN:{name:"Turkmenistan",firs:["UTAA"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ UAE:{name:"United Arab Emirates",firs:["OMAE"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ UZBEKISTAN:{name:"Uzbekistan",firs:["UTTT"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ VIETNAM:{name:"Vietnam",firs:["VVVV"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
+ YEMEN:{name:"Yemen",firs:["OYSC"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"}
 };
-const SAMPLE='(FPL-UPS11-IS\n-B748/H-SADE3FGHIJ1J2J4J5M1P2RWXYZ/LB1D1\n-RKSI0225\n-N0506F320 BOPTA2Y BOPTA Z51 BEDES Y711 PONIK A593 LAMEN/K0941S0980 A593 PK R343 MADUK W51 LEGIV W164 ADGOL W50 XSH W80 IDGAG A581 QNX W136 XISLI A581 SGM A599 LINSO/M084F340 A201 PPT Q18 BODOG A201 LKN R594 JAL\n-VIDP0643 VOHS\n-PBN/A1B1C1D1L1O1S2 NAV/RNP2 DAT/1FANSER2PDC SUR/260B RSP180 CANMANDATE A2 DOF/260929 REG/N615UP OPR/UPS PER/D\n)';
+
+const SAMPLE='(FPL-UPS11-IS\n-B748/H-SADE3FGHIJ1J2J4J5M1P2RWXYZ/LB1D1\n-RKSI0225\n-N0506F320 BOPTA2Y BOPTA Z51 BEDES Y711 PONIK A593 LAMEN/K0941S0980 A593 PK R343 MADUK W51 LEGIV W164 ADGOL W50 XSH W80 IDGAG A581 QNX W136 XISLI A581 SGM A599 LINSO/M084F340 A201 PPT Q18 BODOG A201 LKN R594 JAL\n-VIDP0643 VOHS\n-PBN/A1B1C1D1L1O1S2 NAV/RNP2 DAT/1FANSER2PDC SUR/260B RSP180 CANMANDATE A2 DOF/260929 REG/N615UP OPR/UPS PER/D\nEET/ZSHA0058 ZHWH0155 ZGZU0225 ZPKM0242 VYYF0400 VECF0437 VGFR0445 VECF0446 VGFR0452 VIDF0604\n)';
+
 function byId(id){return document.getElementById(id)}
 function parseFpl(raw){
  const s=raw.replace(/\s+/g,' ').trim();
  const callsign=(s.match(/\(FPL-([A-Z0-9\/]+)/i)||[,'UNKNOWN'])[1];
- const depM=s.match(/-([A-Z]{4})(\d{4})\s/), dstM=s.match(/-([A-Z]{4})(\d{4})(?:\s|\))/);
- const aircraft=(s.match(/-([A-Z0-9]{4})\//)||[,''])[1], reg=(s.match(/REG\/([A-Z0-9-]+)/)||[,''])[1], date=(s.match(/DOF\/(\d{6})/)||[,''])[1];
+ const depM=s.match(/-([A-Z]{4})(\d{4})\s/);
+ const dstM=s.match(/-([A-Z]{4})(\d{4})(?:\s|\))/);
+ const aircraft=(s.match(/-([A-Z0-9]{4})\//)||[,''])[1];
+ const reg=(s.match(/REG\/([A-Z0-9-]+)/)||[,''])[1];
+ const date=(s.match(/DOF\/(\d{6})/)||[,''])[1];
  const routePart=(s.match(/-N\d{4}F\d{3,4}\s(.+?)\s-[A-Z]{4}\d{4}/)||[,''])[1];
- return {callsign,origin:(depM||[])[1]||'',destination:(dstM||[])[1]||'',aircraft,reg,date,route:routePart}
+ const eet=(s.match(/EET\/([^\s\)]+)/)||[,''])[1];
+ return {callsign,origin:(depM||[])[1]||'',destination:(dstM||[])[1]||'',aircraft,reg,date,route:routePart,eet};
 }
-function countriesFromRoute(p){
- const r=p.route.toUpperCase(),f=[];
- if(/\b(?:LAMEN|PK|MADUK|LEGIV|ADGOL|IDGAG|QNX|XISLI|SGM|LINSO)\b/.test(r))f.push('CHINA');
- if(/\b(?:LINSO|ANSOS|LSO|A201|A599)\b/.test(r))f.push('MYANMAR');
- if(/\b(?:TEBUL|AGARTALA|A201)\b/.test(r))f.push('BANGLADESH');
- if(p.destination==='VIDP'||/\b(?:ANSOS|LKN|JAL)\b/.test(r))f.push('INDIA');
- return [...new Set(f)]
+function detectFirs(p){
+ const all=(p.eet+' '+p.route).toUpperCase();
+ return Object.entries(RULES).filter(([k,r])=>r.firs.some(f=>new RegExp('\\b'+f+'\\b').test(all))).map(x=>x[0]);
 }
+function routeCountryOverrides(p){
+ const r=p.route.toUpperCase(),out=[];
+ if(/\b(?:LAMEN|PK|MADUK|LEGIV|ADGOL|IDGAG|QNX|XISLI|SGM|LINSO)\b/.test(r))out.push('CHINA');
+ if(/\b(?:LINSO|ANSOS|LSO|A201|A599)\b/.test(r))out.push('MYANMAR');
+ if(/\b(?:TEBUL|AGARTALA|A201)\b/.test(r))out.push('BANGLADESH');
+ if(p.destination==='VIDP'||/\b(?:LKN|JAL)\b/.test(r))out.push('INDIA');
+ return out;
+}
+function countryList(p){return [...new Set([...detectFirs(p),...routeCountryOverrides(p)])]}
 function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+'/'+d.slice(2,4)+'/20'+d.slice(0,2):'[DATE]'}
+function pill(r){const cls=r.status==='YES'?'yes':r.status==='NO'?'na':'review';return '<span class="pill '+cls+'">'+r.status+'</span>'}
 function emailFor(country,p){
- const entry=country==='CHINA'?'LAMEN':country==='MYANMAR'?'LINSO':country==='BANGLADESH'?'[CALCULATED ENTRY]':'[INDIA ENTRY]';
- const exit=country==='CHINA'?'LINSO':country==='MYANMAR'?'ANSOS':country==='BANGLADESH'?'[CALCULATED EXIT]':'VIDP';
- return 'Subject: '+p.callsign+' – AD HOC OVERFLIGHT PERMIT REQUEST – '+(p.reg||'[REGISTRATION]')+'\n\nDear Sir/Madam,\n\nPlease arrange an overflight permit for the following AD HOC flight:\n\nOperator: UPS\nFlight: '+p.callsign+'\nAircraft Type: '+(p.aircraft||'[AIRCRAFT]')+'\nRegistration: '+(p.reg||'[REGISTRATION]')+'\nDate of Operation: '+fmtDate(p.date)+'\nOrigin: '+p.origin+'\nDestination: '+p.destination+'\n\nEntry Point: '+entry+'\nEntry Time: [UTC]\n\nExit Point: '+exit+'\nExit Time: [UTC]\n\nRoute:\n'+(p.route||'[ROUTE]')+'\n\nPlease confirm the permit number and validity period, and advise if any additional information or documentation is required.\n\nRegards,\nUPS Flight Dispatch'
+ const r=RULES[country];
+ const entry=country==='CHINA'?'LAMEN':country==='MYANMAR'?'LINSO':country==='BANGLADESH'?'[CALCULATED ENTRY]':country==='INDIA'?'[INDIA ENTRY]':'[CALCULATED ENTRY]';
+ const exit=country==='CHINA'?'LINSO':country==='MYANMAR'?'ANSOS':country==='BANGLADESH'?'[CALCULATED EXIT]':country==='INDIA'?'VIDP':'[CALCULATED EXIT]';
+ return 'Subject: '+p.callsign+' – AD HOC OVERFLIGHT PERMIT REQUEST – '+(p.reg||'[REGISTRATION]')+' / '+r.name+'\n\nDear Sir/Madam,\n\nPlease arrange/confirm the required AD HOC overflight authorization for the following flight:\n\nOperator: UPS\nFlight: '+p.callsign+'\nAircraft Type: '+(p.aircraft||'[AIRCRAFT]')+'\nRegistration: '+(p.reg||'[REGISTRATION]')+'\nDate of Operation: '+fmtDate(p.date)+'\nOrigin: '+p.origin+'\nDestination: '+p.destination+'\n\nPermit / entry point: '+entry+'\nEstimated entry time UTC: [UTC]\n\nPermit / exit point: '+exit+'\nEstimated exit time UTC: [UTC]\n\nATS Route:\n'+(p.route||'[ROUTE]')+'\n\nPlease confirm the authorization number, validity period, and whether any additional documents or route details are required.\n\nRegards,\nUPS Flight Dispatch';
 }
 function render(){
  const p=parseFpl(byId('fpl').value); if(!p.origin){alert('Please paste a valid ICAO flight plan.');return}
- const countries=countriesFromRoute(p); byId('results').classList.remove('hidden'); byId('emailCard').classList.add('hidden');
- byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Permits',countries.filter(c=>RULES[c]&&RULES[c].permit).length]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
+ const countries=countryList(p); window.currentParsed=p; window.currentCountries=countries;
+ byId('results').classList.remove('hidden');byId('delayCard').classList.remove('hidden');byId('emailCard').classList.add('hidden');
+ const permits=countries.filter(c=>RULES[c].status==='YES').length,review=countries.filter(c=>RULES[c].status==='REVIEW').length;
+ byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Asia matches',countries.length],['Verified / Review',permits+' / '+review]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
  byId('route').textContent=p.route||'No route parsed';
- byId('tbody').innerHTML=countries.map(c=>{const r=RULES[c];return '<tr><td><strong>'+r.name+'</strong></td><td><span class="pill '+(r.confidence==='VERIFIED'?'yes':'review')+'">'+(r.permit?'YES':'NO')+'</span></td><td>'+r.validity+'</td><td>'+r.note+'</td><td><button class="btn small" onclick="showEmail(\''+c+'\')">GENERATE EMAIL</button></td></tr>'}).join('');
- if(!countries.length)byId('tbody').innerHTML='<tr><td colspan="5">No V1 Asia rule matched this route.</td></tr>';
- window.currentParsed=p
+ byId('tbody').innerHTML=countries.length?countries.map(c=>{const r=RULES[c];return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td>'+r.validity+'</td><td>'+r.lead+'</td><td>'+(r.entryExit?'Required / verify':'—')+'</td><td>'+r.note+'</td><td>'+r.source+'</td><td><button class="btn small" onclick="showEmail(\''+c+'\')">EMAIL</button></td></tr>'}).join(''):'<tr><td colspan="8">No Asia FIR/country match detected. Manual route review still recommended.</td></tr>';
 }
 window.showEmail=function(c){byId('email').textContent=emailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
+function checkDelay(){
+ const a=byId('eobt').value,b=byId('actual').value;
+ if(!a||!b){byId('delayResult').textContent='Enter both times to calculate the delay. Country-specific permit expiry still requires the actual issued permit validity.';return}
+ const mins=Math.round((new Date(b)-new Date(a))/60000);
+ let html='<strong>Delay: '+mins+' minutes ('+(mins/60).toFixed(1)+' hours)</strong><br>';
+ if(mins<0)html+='<span class="warn">Revised EOBT is earlier than planned. Verify the permit timing against the issued authorization.</span>';
+ else if(mins>120)html+='<span class="warn">More than 2 hours: Bangladesh ADC specifically requires a fresh ADC under the cited current AIP material. Other countries must be checked against their issued permit validity.</span>';
+ else html+='<span class="ok">No Bangladesh >2-hour ADC trigger detected. Still verify every permit against its actual validity window.</span>';
+ byId('delayResult').innerHTML=html;
+}
 byId('check').onclick=render;
 byId('sample').onclick=function(){byId('fpl').value=SAMPLE;render()};
-byId('clear').onclick=function(){byId('fpl').value='';byId('results').classList.add('hidden');byId('emailCard').classList.add('hidden')};
-byId('copy').onclick=async function(){try{await navigator.clipboard.writeText(byId('email').textContent);byId('copy').textContent='COPIED';setTimeout(function(){byId('copy').textContent='COPY EMAIL'},1200)}catch(e){alert('Copy is blocked by this browser. Select the email text and copy manually.')}};
+byId('clear').onclick=function(){byId('fpl').value='';byId('results').classList.add('hidden');byId('delayCard').classList.add('hidden');byId('emailCard').classList.add('hidden')};
+byId('copy').onclick=async function(){try{await navigator.clipboard.writeText(byId('email').textContent);byId('copy').textContent='COPIED';setTimeout(()=>byId('copy').textContent='COPY EMAIL',1200)}catch(e){alert('Copy is blocked by this browser. Select the email text and copy manually.')}};
+byId('eobt').onchange=checkDelay;byId('actual').onchange=checkDelay;
 </script>
 </body>
 </html>
