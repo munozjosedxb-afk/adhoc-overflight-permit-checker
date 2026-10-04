@@ -162,7 +162,7 @@ function byId(id){return document.getElementById(id)}
 function parseFpl(raw){
  const p=parseCoreFpl(raw); if(!p.valid) return p;
  const s=String(raw||'').replace(/\s+/g,' ').trim();
- const routePart=(s.match(/-N\d{4}F\d{3,4}\s(.+?)\s-[A-Z]{4}\d{4}/)||[,''])[1]||'';
+ const routePart=(s.match(/-[A-Z]\d{4}F\d{3,4}\s(.+?)\s-[A-Z]{4}\d{4}/)||['',''])[1]||'';
  const eet=(s.match(/EET\/([^\)]+)/)||[,''])[1]||'';
  const aircraft=(s.match(/-([A-Z0-9]{4})\//)||[,''])[1]||'';
  return {...p,aircraft,route:routePart,eet};
