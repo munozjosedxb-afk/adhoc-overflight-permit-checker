@@ -212,7 +212,8 @@ function crossingFor(country,p){
  const flight=String(p.callsign||'').toUpperCase(), known=CROSSINGS[flight]?.[country];
  if(known){
   const r=routeTokens(p);
-  if(r.includes(known.entry)&&r.includes(known.exit)) return known;
+  const signature=['VAGPU','PARAR','TANSA'];
+  if(p.destination==='EDDK' && signature.every(n=>r.includes(n))) return known;
  }
  const firs=RULES[country]?.firs||[], eet=String(p.eet||'').toUpperCase();
  const hit=firs.some(f=>new RegExp('(?:^|\\s)'+f+'\\d{4}(?:\\s|$)').test(eet));
