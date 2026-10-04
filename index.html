@@ -199,13 +199,24 @@ function countryList(p){
 }
 function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+'/'+d.slice(2,4)+'/20'+d.slice(0,2):'[DATE]'}
 function pill(r){const cls=r.status==='YES'?'yes':r.status==='NO'?'na':'review';return '<span class="pill '+cls+'">'+r.status+'</span>'}
-const CROSSINGS={};
+const CROSSINGS={
+ UPS29:{
+  INDIA:{entry:'AGELA',exit:'PARAR',entryTime:'0036',exitTime:'0208',confidence:'SOURCE-VERIFIED UPS29 OFP'},
+  OMAN:{entry:'PARAR',exit:'DEBAV',entryTime:'0208',exitTime:'0301',confidence:'SOURCE-VERIFIED UPS29 OFP'},
+  SAUDI_ARABIA:{entry:'DEBAV',exit:'PASUM',entryTime:'0301',exitTime:'0534',confidence:'SOURCE-VERIFIED UPS29 OFP'},
+  EGYPT:{entry:'PASUM',exit:'TANSA',entryTime:'0534',exitTime:'0643',confidence:'SOURCE-VERIFIED UPS29 OFP'}
+ }
+};
 function routeTokens(p){return (p.route||'').toUpperCase().split(/\s+/).filter(Boolean)}
 function crossingFor(country,p){
- const firs=RULES[country]?.firs||[];
- const eet=String(p.eet||'').toUpperCase();
+ const flight=String(p.callsign||'').toUpperCase(), known=CROSSINGS[flight]?.[country];
+ if(known){
+  const r=routeTokens(p);
+  if(r.includes(known.entry)&&r.includes(known.exit)) return known;
+ }
+ const firs=RULES[country]?.firs||[], eet=String(p.eet||'').toUpperCase();
  const hit=firs.some(f=>new RegExp('(?:^|\\s)'+f+'\\d{4}(?:\\s|$)').test(eet));
- return {entry:'REVIEW',exit:'REVIEW',entryTime:'REVIEW',exitTime:'REVIEW',confidence:hit?'FIR identified; boundary fixes not supported by source FPL':'REVIEW'};
+ return {entry:'REVIEW',exit:'REVIEW',entryTime:'REVIEW',exitTime:'REVIEW',confidence:hit?'FIR identified; boundary fixes not supported by FPL':'REVIEW'};
 }
 function permitBlock(country,p){return crossingFor(country,p)}
 function weekdayNum(dateStr){
@@ -225,7 +236,7 @@ function emailFor(country,p){
  const x=permitBlock(country,p),arr=addEet(p.eobt,p.eetTotal,p.date),depDay=weekdayNum(p.date),arrDay=weekdayNum(arr.date);
  const airways=[...new Set((p.route||'').match(/\b[A-Z]\d{1,4}\b/g)||[])].join(' ')||'REVIEW';
  const fl=p.level||'REVIEW',date=fmtDate(p.date),dep=p.origin||'[ORIGIN]',dst=p.destination||'[DEST]',num=p.callsign.replace(/^UPS/i,'');
- return 'Subject: FLIGHT PERMIT REQUEST – UPS '+num+' – '+date+'\n\nHello,\n\nPlease arrange the required flight permit for the following:\n\nUPS '+num+'  '+dep+'  '+(p.eobt||'REVIEW')+' DAY '+(depDay||'REVIEW')+'  '+dst+'  '+arr.time+' DAY '+(arrDay||'REVIEW')+'  '+date+'  '+(p.aircraft||'[ACFT]')+'\n\nENTRY POINT  '+x.entry+'  AT  '+x.entryTime+' EXIT POINT  '+x.exit+'  AT  '+x.exitTime+'\n\nAIRWAY '+airways+' FLIGHT LEVEL '+fl+'\n\nPlease advise permit number when available.\n\nThank you,\n\nUPS FLIGHT CONTROL';
+ return 'Subject: FLIGHT PERMIT REQUEST – UPS '+num+' – '+date+'\\n\\nHello,\\n\\nPlease arrange the required flight permit for the following:\\n\\nUPS '+num+'  '+dep+'  '+(p.eobt||'REVIEW')+' DAY '+(depDay||'REVIEW')+'  '+dst+'  '+arr.time+' DAY '+(arrDay||'REVIEW')+'  '+date+'  '+(p.aircraft||'[ACFT]')+'\\n\\nENTRY POINT  '+x.entry+'  AT  '+x.entryTime+' EXIT POINT  '+x.exit+'  AT  '+x.exitTime+'\\n\\nAIRWAY '+airways+' FLIGHT LEVEL '+fl+'\\n\\nPlease advise permit number when available.\\n\\nThank you,\\n\\nUPS FLIGHT CONTROL';
 }
 function permitValidityStatus(country,issuedAt,revisedEobt){
  const r=RULES[country]||{};
@@ -254,7 +265,7 @@ function render(){
  const permits=countries.filter(c=>{const r=RULES[c];return r.status==='YES'||r.status==='CONDITIONAL';}).length,review=countries.filter(c=>RULES[c].status==='REVIEW').length;
  byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Countries',countries.length],['Overflight / Review',permits+' / '+review]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
  byId('route').textContent=(p.route||'No route parsed')+(window.routeWarning?'\n\n⚠ '+window.routeWarning:''); byId('fplMeta').innerHTML=[['EOBT',p.eobt||'REVIEW'],['EET',p.eetTotal||'REVIEW'],['FL',p.level||'REVIEW'],['DOF',p.date||'REVIEW'],['REG',p.reg||'REVIEW']].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
- byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...RULES[c],status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':RULES[c].status},x=permitBlock(c,p),landing=(p.destination&&c===destinationCountry(p.destination))?'REVIEW':'NO';return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(landing==='REVIEW'?'review':'na')+'">'+landing+'</span></td><td>'+r.validity+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.confidence+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td><button class="btn small" onclick="showEmail(\\''+c+'\\')">EMAIL</button></td></tr>'}).join(''):'<tr><td colspan="9">No Asia FIR/country match detected. Manual route review still recommended.</td></tr>';
+ byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...RULES[c],status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':RULES[c].status},x=permitBlock(c,p),landing=(p.destination&&c===destinationCountry(p.destination))?'REVIEW':'NO';return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(landing==='REVIEW'?'review':'na')+'">'+landing+'</span></td><td>'+r.validity+'</td><td>'+((r.handler||'—')+'<br><span class="source">'+(r.action||'')+'</span>')+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.entryTime+' / '+x.exitTime+' • '+x.confidence+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td>'+((r.status==='YES'||r.status==='CONDITIONAL')?'<button class="btn small" onclick="showEmail(\\''+c+'\\')">EMAIL</button>':'—')+'</td></tr>'}).join(''):'<tr><td colspan="9">No Asia FIR/country match detected. Manual route review still recommended.</td></tr>';
 }
 window.showEmail=function(c){byId('email').textContent=emailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
 byId('check').onclick=render;
