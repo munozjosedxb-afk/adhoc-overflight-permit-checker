@@ -194,36 +194,67 @@ function countryList(p){
  // UPS operational exception: ZJ/Sanya FIR-only over-water transit does not require a China permit.
  const chinaFirs=(RULES.CHINA.firs||[]).filter(x=>x!=="ZJSA");
  const chinaOther=chinaFirs.some(x=>new RegExp('\\b'+x+'\\b').test(eet+' '+route));
- if(found.includes('CHINA') && /\\bZJSA\\b/.test(eet) && !chinaOther) found.splice(found.indexOf('CHINA'),1);
+ if(found.includes('CHINA') && /\bZJSA\b/.test(eet) && !chinaOther) found.splice(found.indexOf('CHINA'),1);
  return found;
 }
 function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+' '+['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][Number(d.slice(2,4))-1]+' 20'+d.slice(0,2):'[DATE]'}
 function pill(r){const cls=r.status==='YES'?'yes':r.status==='NO'?'na':'review';return '<span class="pill '+cls+'">'+r.status+'</span>'}
-const CROSSINGS={
- UPS29:{
-  INDIA:{entry:'AGELA',exit:'PARAR',entryTime:'0036',exitTime:'0208',confidence:'SOURCE-VERIFIED UPS29 OFP'},
-  OMAN:{entry:'PARAR',exit:'DEBAV',entryTime:'0208',exitTime:'0301',confidence:'SOURCE-VERIFIED UPS29 OFP'},
-  SAUDI_ARABIA:{entry:'DEBAV',exit:'PASUM',entryTime:'0301',exitTime:'0534',confidence:'SOURCE-VERIFIED UPS29 OFP'},
-  EGYPT:{entry:'PASUM',exit:'TANSA',entryTime:'0534',exitTime:'0643',confidence:'SOURCE-VERIFIED UPS29 OFP'}
+/*
+ CROSSING PATTERN DATABASE
+ A pattern is allowed to supply a named entry/exit fix only when the filed route
+ contains the verified route signature. EET anchors alone supply timing only.
+ This keeps the resolver generic while preventing it from inventing boundary fixes.
+*/
+const CROSSING_PATTERNS=[
+ {id:'UPS29_VOBL_EDDK',origin:'VOBL',destination:'EDDK',
+  routeIncludes:['VAGPU','AGELA','PARAR','TULBU','TOKRA','PASUM','TANSA'],
+  source:'SOURCE-VERIFIED UPS29 OFP',
+  crossings:{
+   INDIA:{entry:'AGELA',exit:'PARAR'},
+   OMAN:{entry:'PARAR',exit:'DEBAV'},
+   SAUDI_ARABIA:{entry:'DEBAV',exit:'PASUM'},
+   EGYPT:{entry:'PASUM',exit:'TANSA'}
+  },
+  times:{
+   INDIA:{entry:'0036',exit:'0208'},
+   OMAN:{entry:'0208',exit:'0301'},
+   SAUDI_ARABIA:{entry:'0301',exit:'0534'},
+   EGYPT:{entry:'0534',exit:'0643'}
+  }
  }
-};
+];
+
 function routeTokens(p){return (p.route||'').toUpperCase().split(/\s+/).filter(Boolean)}
+
+function crossingPatternFor(country,p){
+ const r=routeTokens(p), origin=String(p.origin||'').toUpperCase(), destination=String(p.destination||'').toUpperCase();
+ return CROSSING_PATTERNS.find(pattern=>
+   (!pattern.origin||pattern.origin===origin) &&
+   (!pattern.destination||pattern.destination===destination) &&
+   pattern.routeIncludes.every(token=>r.includes(token)) &&
+   pattern.crossings?.[country]
+ )||null;
+}
+
 function crossingFor(country,p){
- const flight=String(p.callsign||'').toUpperCase(), known=CROSSINGS[flight]?.[country];
- if(known){
-  const r=routeTokens(p);
-  const signature=['VAGPU','PARAR','TANSA'];
-  if(p.destination==='EDDK' && signature.every(n=>r.includes(n))) return known;
+ const pattern=crossingPatternFor(country,p);
+ if(pattern){
+  const c=pattern.crossings[country], t=pattern.times?.[country]||{};
+  return {
+   entry:c.entry,exit:c.exit,
+   entryTime:t.entry||'REVIEW',exitTime:t.exit||'REVIEW',
+   confidence:pattern.source
+  };
  }
+
  const firs=RULES[country]?.firs||[], anchors=parseEetAnchors(p.eet||'');
  const hits=anchors.map((a,i)=>({a,i})).filter(x=>firs.includes(x.a.fir));
  if(hits.length){
-  const first=hits[0], last=hits[hits.length-1];
-  const prev=anchors[first.i-1], next=anchors[last.i+1];
+  const first=hits[0], last=hits[hits.length-1], prev=anchors[first.i-1];
   return {
    entry:'REVIEW',exit:'REVIEW',
-   entryTime:prev?.time||'0000',exitTime:last.a.time,
-   confidence:'EET-VERIFIED FIR boundary timing; crossing fix not explicitly filed'
+   entryTime:prev?.time||'REVIEW',exitTime:last.a.time,
+   confidence:'EET-VERIFIED FIR boundary timing; named crossing fix not explicitly filed'
   };
  }
  return {entry:'REVIEW',exit:'REVIEW',entryTime:'REVIEW',exitTime:'REVIEW',confidence:'REVIEW'};
