@@ -5,7 +5,7 @@ function parseCoreFpl(raw){
   if(!m) return {valid:false};
   const date=(s.match(/DOF\/(\d{6})/i)||[])[1]||'';
   const reg=(s.match(/REG\/([A-Z0-9-]+)/i)||[])[1]||'';
-  return {valid:true,callsign:m[1],origin:m[2],eobt:m[3],speed:m[5],level:m[6],destination:m[7],eta:m[8],date,reg};
+  return {valid:true,callsign:m[1],origin:m[2],eobt:m[3],speed:m[5],level:m[6],destination:m[7],eetTotal:m[8],eta:m[8],date,reg};
 }
 
 
