@@ -156,7 +156,14 @@ const RULES={
 
 };
 
-const SAMPLE'(FPL-UPS11-IS\n-B748/H-SADE3FGHIJ1J2J4J5M1P2RWXYZ/LB1D1\n-RKSI0225\n-N0506F320 BOPTA2Y BOPTA Z51 BEDES Y711 PONIK A593 LAMEN/K0941S0980 A593 PK R343 MADUK W51 LEGIV W164 ADGOL W50 XSH W80 IDGAG A581 QNX W136 XISLI A581 SGM A599 LINSO/M084F340 A201 PPT Q18 BODOG A201 LKN R594 JAL\n-VIDP0643 VOHS\n-PBN/A1B1C1D1L1O1S2 NAV/RNP2 DAT/1FANSER2PDC SUR/260B RSP180 CANMANDATE A2 DOF/260929 REG/N615UP OPR/UPS PER/D\nEET/ZSHA0058 ZHWH0155 ZGZU0225 ZPKM0242 VYYF0400 VECF0437 VGFR0445 VECF0446 VGFR0452 VIDF0604\n)';
+const SAMPLE=\`(FPL-UPS11-IS
+-B748/H-SADE3FGHIJ1J2J4J5M1P2RWXYZ/LB1D1
+-RKSI0225
+-N0506F320 BOPTA2Y BOPTA Z51 BEDES Y711 PONIK A593 LAMEN/K0941S0980 A593 PK R343 MADUK W51 LEGIV W164 ADGOL W50 XSH W80 IDGAG A581 QNX W136 XISLI A581 SGM A599 LINSO/M084F340 A201 PPT Q18 BODOG A201 LKN R594 JAL
+-VIDP0643 VOHS
+-PBN/A1B1C1D1L1O1S2 NAV/RNP2 DAT/1FANSER2PDC SUR/260B RSP180 CANMANDATE A2 DOF/260929 REG/N615UP OPR/UPS PER/D
+EET/ZSHA0058 ZHWH0155 ZGZU0225 ZPKM0242 VYYF0400 VECF0437 VGFR0445 VECF0446 VGFR0452 VIDF0604
+)`;
 
 function byId(id){return document.getElementById(id)}
 function parseFpl(raw){
@@ -223,7 +230,7 @@ function render(){
  byId('results').classList.remove('hidden');byId('emailCard').classList.add('hidden');
  const permits=countries.filter(c=>{const r=RULES[c];return r.status==='YES'||r.status==='CONDITIONAL';}).length,review=countries.filter(c=>RULES[c].status==='REVIEW').length;
  byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Countries',countries.length],['Overflight / Review',permits+' / '+review]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
- byId('route').textContent=(p.route||'No route parsed')+(window.routeWarning?'\n\n⚠ '+window.routeWarning:''); byId('fplMeta').innerHTML=[['EOBT',p.eobt||'REVIEW'],['ETA',p.eta||'REVIEW'],['Flight Level',p.level||'REVIEW'],['Date',p.date||'REVIEW'],['Registration',p.reg||'REVIEW']].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
+ byId('route').textContent=(p.route||'No route parsed')+(window.routeWarning?'\n\n⚠ '+window.routeWarning:''); byId('fplMeta').innerHTML=[['EOBT',p.eobt||'REVIEW'],['EET',p.eetTotal||'REVIEW'],['FL',p.level||'REVIEW'],['DOF',p.date||'REVIEW'],['REG',p.reg||'REVIEW']].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
  byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...RULES[c],status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':RULES[c].status},x=permitBlock(c,p),landing=(p.destination&&c===destinationCountry(p.destination))?'REVIEW':'NO';return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(landing==='REVIEW'?'review':'na')+'">'+landing+'</span></td><td>'+r.validity+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.confidence+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td><button class="btn small" onclick="showEmail(\\''+c+'\\')">EMAIL</button></td></tr>'}).join(''):'<tr><td colspan="9">No Asia FIR/country match detected. Manual route review still recommended.</td></tr>';
 }
 window.showEmail=function(c){byId('email').textContent=emailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
