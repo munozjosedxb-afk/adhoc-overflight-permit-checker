@@ -152,7 +152,16 @@ function routeCountryOverrides(p){
  if(p.destination==='VIDP'||/\b(?:LKN|JAL)\b/.test(r))out.push('INDIA');
  return out;
 }
-function countryList(p){return [...new Set([...detectFirs(p),...routeCountryOverrides(p)])]}
+function countryList(p){
+ const found=[...new Set([...detectFirs(p),...routeCountryOverrides(p)])];
+ const eet=String(p.eet||'').toUpperCase();
+ const route=String(p.route||'').toUpperCase();
+ // UPS operational exception: ZJ/Sanya FIR-only over-water transit does not require a China permit.
+ const chinaFirs=(RULES.CHINA.firs||[]).filter(x=>x!=="ZJSA");
+ const chinaOther=chinaFirs.some(x=>new RegExp('\\b'+x+'\\b').test(eet+' '+route));
+ if(found.includes('CHINA') && /\\bZJSA\\b/.test(eet) && !chinaOther) found.splice(found.indexOf('CHINA'),1);
+ return found;
+}
 function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+'/'+d.slice(2,4)+'/20'+d.slice(0,2):'[DATE]'}
 function pill(r){const cls=r.status==='YES'?'yes':r.status==='NO'?'na':'review';return '<span class="pill '+cls+'">'+r.status+'</span>'}
 const CROSSINGS={CHINA:{entry:['LAMEN'],exit:['LINSO']},MYANMAR:{entry:['LINSO'],exit:['ANSOS']},INDIA:{entry:['LKN'],exit:['VIDP']}};
@@ -180,10 +189,13 @@ function destinationCountry(icao){const m={WSSS:'SINGAPORE',VIDP:'INDIA',VOBL:'I
 function render(){
  const p=parseFpl(byId('fpl').value); if(!p.origin){alert('Please paste a valid ICAO flight plan.');return}
  const countries=countryList(p); window.currentParsed=p; window.currentCountries=countries;
+ if(p.origin==='RCTP'||p.destination==='RCTP') window.routeWarning='UPS playbook: China overflight is not permitted when TPE/RCTP is origin or destination.';
+ else if(countries.includes('TURKEY')) window.routeWarning='UPS playbook: Turkey requires GENERAL CARGO FLIGHT in Item 18.';
+ else window.routeWarning='';
  byId('results').classList.remove('hidden');byId('emailCard').classList.add('hidden');
  const permits=countries.filter(c=>{const r=RULES[c];return r.status==='YES'||r.status==='CONDITIONAL';}).length,review=countries.filter(c=>RULES[c].status==='REVIEW').length;
  byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Countries',countries.length],['Overflight / Review',permits+' / '+review]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
- byId('route').textContent=p.route||'No route parsed'; byId('fplMeta').innerHTML=[['EOBT',p.eobt||'REVIEW'],['ETA',p.eta||'REVIEW'],['Flight Level',p.level||'REVIEW'],['Date',p.date||'REVIEW'],['Registration',p.reg||'REVIEW']].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
+ byId('route').textContent=(p.route||'No route parsed')+(window.routeWarning?'\n\n⚠ '+window.routeWarning:''); byId('fplMeta').innerHTML=[['EOBT',p.eobt||'REVIEW'],['ETA',p.eta||'REVIEW'],['Flight Level',p.level||'REVIEW'],['Date',p.date||'REVIEW'],['Registration',p.reg||'REVIEW']].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
  byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...RULES[c],status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':RULES[c].status},x=permitBlock(c,p),landing=(p.destination&&c===destinationCountry(p.destination))?'REVIEW':'NO';return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(landing==='REVIEW'?'review':'na')+'">'+landing+'</span></td><td>'+r.validity+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.confidence+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td><button class="btn small" onclick="showEmail(\\''+c+'\\')">EMAIL</button></td></tr>'}).join(''):'<tr><td colspan="9">No Asia FIR/country match detected. Manual route review still recommended.</td></tr>';
 }
 window.showEmail=function(c){byId('email').textContent=emailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
