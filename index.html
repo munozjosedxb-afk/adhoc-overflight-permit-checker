@@ -199,11 +199,34 @@ function countryList(p){
 }
 function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+'/'+d.slice(2,4)+'/20'+d.slice(0,2):'[DATE]'}
 function pill(r){const cls=r.status==='YES'?'yes':r.status==='NO'?'na':'review';return '<span class="pill '+cls+'">'+r.status+'</span>'}
-const CROSSINGS={CHINA:{entry:['LAMEN'],exit:['LINSO']},MYANMAR:{entry:['LINSO'],exit:['ANSOS']},INDIA:{entry:['LKN'],exit:['VIDP']}};
+const CROSSINGS={};
 function routeTokens(p){return (p.route||'').toUpperCase().split(/\s+/).filter(Boolean)}
-function crossingFor(country,p){const t=routeTokens(p),cfg=CROSSINGS[country];if(!cfg)return {entry:'REVIEW',exit:'REVIEW',entryTime:'REVIEW',exitTime:'REVIEW',confidence:'REVIEW'};const find=a=>{for(const n of a){const i=t.indexOf(n);if(i>=0)return {name:n,index:i}}return null};const en=find(cfg.entry),ex=find(cfg.exit);if(!en||!ex||ex.index<=en.index)return {entry:en?en.name:'REVIEW',exit:ex?ex.name:'REVIEW',entryTime:'REVIEW',exitTime:'REVIEW',confidence:'REVIEW'};return {entry:en.name,exit:ex.name,entryTime:'REVIEW',exitTime:'REVIEW',confidence:'ROUTE POINTS IDENTIFIED'};}
+function crossingFor(country,p){
+ const firs=RULES[country]?.firs||[];
+ const eet=String(p.eet||'').toUpperCase();
+ const hit=firs.some(f=>new RegExp('(?:^|\\s)'+f+'\\d{4}(?:\\s|$)').test(eet));
+ return {entry:'REVIEW',exit:'REVIEW',entryTime:'REVIEW',exitTime:'REVIEW',confidence:hit?'FIR identified; boundary fixes not supported by source FPL':'REVIEW'};
+}
 function permitBlock(country,p){return crossingFor(country,p)}
-function emailFor(country,p){const r=RULES[country],x=permitBlock(country,p),date=fmtDate(p.date),dep=p.origin||'[DEP]',dst=p.destination||'[DEST]';return r.name.toUpperCase()+'\\n\\n'+p.callsign+' '+dep+' [EOBT] DAY [DAY] '+dst+' [ETA] DAY [DAY] '+date+' '+(p.aircraft||'[ACFT]')+'\\n\\n   ENTRY POINT '+x.entry+' AT '+x.entryTime+' EXIT POINT '+x.exit+' AT '+x.exitTime+'\\n\\n   AIRWAY / FLIGHT LEVEL: REVIEW — extract from dispatch FPL before sending\\n\\n   ROUTE DATA STATUS: '+x.confidence+'\\n';}
+function weekdayNum(dateStr){
+ if(!/^\d{6}$/.test(dateStr)) return null;
+ const d=new Date(Date.UTC(2000+Number(dateStr.slice(0,2)),Number(dateStr.slice(2,4))-1,Number(dateStr.slice(4,6))));
+ return d.getUTCDay()===0?7:d.getUTCDay();
+}
+function addEet(eobt,eet,dateStr){
+ if(!/^\d{4}$/.test(eobt)||!/^(\d{4})$/.test(eet)||!/^\d{6}$/.test(dateStr)) return {time:'REVIEW',date:dateStr};
+ const d=new Date(Date.UTC(2000+Number(dateStr.slice(0,2)),Number(dateStr.slice(2,4))-1,Number(dateStr.slice(4,6)),Number(eobt.slice(0,2)),Number(eobt.slice(2)));
+ d.setUTCMinutes(d.getUTCMinutes()+Number(eet.slice(0,2))*60+Number(eet.slice(2)));
+ const yy=String(d.getUTCFullYear()).slice(2),mm=String(d.getUTCMonth()+1).padStart(2,'0'),dd=String(d.getUTCDate()).padStart(2,'0');
+ return {time:String(d.getUTCHours()).padStart(2,'0')+String(d.getUTCMinutes()).padStart(2,'0'),date:yy+mm+dd};
+}
+function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+' '+['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][Number(d.slice(2,4))-1]+' 20'+d.slice(0,2):'[DATE]'}
+function emailFor(country,p){
+ const x=permitBlock(country,p),arr=addEet(p.eobt,p.eetTotal,p.date),depDay=weekdayNum(p.date),arrDay=weekdayNum(arr.date);
+ const airways=[...new Set((p.route||'').match(/\b[A-Z]\d{1,4}\b/g)||[])].join(' ')||'REVIEW';
+ const fl=p.level||'REVIEW',date=fmtDate(p.date),dep=p.origin||'[ORIGIN]',dst=p.destination||'[DEST]',num=p.callsign.replace(/^UPS/i,'');
+ return 'Subject: FLIGHT PERMIT REQUEST – UPS '+num+' – '+date+'\n\nHello,\n\nPlease arrange the required flight permit for the following:\n\nUPS '+num+'  '+dep+'  '+(p.eobt||'REVIEW')+' DAY '+(depDay||'REVIEW')+'  '+dst+'  '+arr.time+' DAY '+(arrDay||'REVIEW')+'  '+date+'  '+(p.aircraft||'[ACFT]')+'\n\nENTRY POINT  '+x.entry+'  AT  '+x.entryTime+' EXIT POINT  '+x.exit+'  AT  '+x.exitTime+'\n\nAIRWAY '+airways+' FLIGHT LEVEL '+fl+'\n\nPlease advise permit number when available.\n\nThank you,\n\nUPS FLIGHT CONTROL';
+}
 function permitValidityStatus(country,issuedAt,revisedEobt){
  const r=RULES[country]||{};
  const v=String(r.validity||'').toUpperCase();
