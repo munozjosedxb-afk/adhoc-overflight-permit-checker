@@ -425,56 +425,7 @@ function crossingPatternsFor(country,p){
  );
 }
 
-function crossingFor(country,p){
- const pattern=crossingPatternFor(country,p);
- if(pattern){
-  const c=pattern.crossings[country], t=pattern.eet?.[country]||{};
-  const entryClock=t.entry==='EOBT'?{time:p.eobt||'REVIEW',date:p.date,valid:true}:
-    t.entry?eetClock(p.eobt,t.entry,p.date):{time:'REVIEW',date:p.date,valid:false};
-  const exitClock=t.exit==='EOBT'?{time:p.eobt||'REVIEW',date:p.date,valid:true}:
-    t.exit?eetClock(p.eobt,t.exit,p.date):{time:'REVIEW',date:p.date,valid:false};
-  return {
-   entry:c.entry,exit:c.exit,
-   entryTime:entryClock.time,exitTime:exitClock.time,
-   confidence:pattern.source
-  };
- }
-
- const firs=RULES[country]?.firs||[], anchors=parseEetAnchors(p.eet||'');
- const hits=anchors.map((a,i)=>({a,i})).filter(x=>firs.includes(x.a.fir));
- if(hits.length){
-  // A country/FIR may appear in multiple non-contiguous segments. Do not collapse
-  // those segments into one fictitious entry/exit crossing.
-  const segments=[];
-  let current=null;
-  for(const hit of hits){
-   if(!current || hit.i!==current.lastIndex+1){
-    current={startIndex:hit.i,endIndex:hit.i,lastIndex:hit.i};
-    segments.push(current);
-   }else{
-    current.endIndex=hit.i;
-    current.lastIndex=hit.i;
-   }
-  }
-  if(segments.length>1){
-   return {
-    entry:'REVIEW',exit:'REVIEW',
-    entryTime:'REVIEW',exitTime:'REVIEW',
-    confidence:'REVIEW — country/FIR appears in multiple non-contiguous segments; use a source-verified route pattern'
-   };
-  }
-  const first=hits[0], last=hits[hits.length-1], prev=anchors[first.i-1];
-  const entryClock=prev?eetClock(p.eobt,prev.time,p.date):null;
-  const exitClock=eetClock(p.eobt,last.a.time,p.date);
-  return {
-   entry:'REVIEW',exit:'REVIEW',
-   entryTime:entryClock?.time||'REVIEW',
-   exitTime:exitClock.time,
-   confidence:'EET-VERIFIED FIR boundary timing; named crossing fix not explicitly filed'
-  };
- }
- return {entry:'REVIEW',exit:'REVIEW',entryTime:'REVIEW',exitTime:'REVIEW',confidence:'REVIEW'};
-}
+function crossingFor(country,p){ const pattern=crossingPatternFor(country,p); if(pattern){ const c=pattern.crossings[country],t=pattern.eet?.[country]||{}; const ec=t.entry==='EOBT'?{time:p.eobt||'REVIEW'}:t.entry?eetClock(p.eobt,t.entry,p.date):{time:'REVIEW'}; const xc=t.exit==='EOBT'?{time:p.eobt||'REVIEW'}:t.exit?eetClock(p.eobt,t.exit,p.date):{time:'REVIEW'}; return {entry:c.entry,exit:c.exit,entryTime:ec.time,exitTime:xc.time,confidence:pattern.source}; } const firs=RULES[country]?.firs||[],anchors=parseEetAnchors(p.eet||''); const hits=anchors.map((x,i)=>({x,i})).filter(x=>firs.includes(x.x.fir)); if(!hits.length)return {entry:'REVIEW',exit:'REVIEW',entryTime:'REVIEW',exitTime:'REVIEW',confidence:'REVIEW'}; const segments=hits.map((h,i)=>({fir:h.x.fir,entryTime:i?eetClock(p.eobt,anchors[h.i-1].time,p.date).time:'REVIEW',exitTime:eetClock(p.eobt,h.x.time,p.date).time})); const first=segments[0],last=segments[segments.length-1]; return {entry:'REVIEW',exit:'REVIEW',entryTime:first.entryTime,exitTime:last.exitTime,segments,confidence:segments.length>1?'EET-VERIFIED segmented FIR timing — multiple non-contiguous segments':'EET-VERIFIED FIR boundary timing'}; }
 function permitBlock(country,p){return crossingFor(country,p)}
 function weekdayNum(dateStr){
  if(!/^\d{6}$/.test(dateStr)) return null;
