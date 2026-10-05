@@ -495,7 +495,7 @@ function permitValidityStatus(country,issuedAt,revisedEobt){
 }
 
 function overflightRule(country,p){const base=RULES[country]||{};const originCountry=destinationCountry(p.origin);if(country===originCountry)return {...base,status:"NO",validity:"No OVF permit — flight departs this country",handler:"—",action:"No overflight permit request; evaluate takeoff/landing separately",note:"The flight is departing this country. A departing flight is not treated as a transit-only overflight permit event, so do not generate an overflight permit request. Takeoff/landing authorization is evaluated separately.",source:"UPS operational routing logic"};return base;}
-function destinationCountry(icao){const m={WSSS:'SINGAPORE',VIDP:'INDIA',VOBL:'INDIA',RPLC:'PHILIPPINES',ZSPD:'CHINA',RKSI:'SOUTH_KOREA',ZGSZ:'CHINA',VVNB:'VIETNAM',VTBS:'THAILAND',VHHH:'HONG_KONG'};return m[icao]||null;}
+function destinationCountry(icao){const m={WSSS:'SINGAPORE',VIDP:'INDIA',VOBL:'INDIA',RPLC:'PHILIPPINES',ZSPD:'CHINA',RKSI:'SOUTH_KOREA',ZGSZ:'CHINA',VVNB:'VIETNAM',VTBS:'THAILAND',VHHH:'HONG_KONG',RCTP:'TAIWAN'};return m[icao]||null;}
 function landingStatus(country,p){
  const r=RULES[country]||{}, oc=country===destinationCountry(p.origin), dc=country===destinationCountry(p.destination);
  if(!oc&&!dc) return {status:'NO',reason:'Transit only'};
