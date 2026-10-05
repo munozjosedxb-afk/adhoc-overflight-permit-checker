@@ -84,7 +84,7 @@ const RULES={
  MALDIVES:{name:"Maldives",firs:["VRMF"],status:"YES",validity:"±72 hours from approved departure",entryExit:true,note:"Maldives CAA requires an overfly permit application for foreign civil operations. CAA specifies aircraft/operator details, aircraft registration, callsign, commander, crew/passengers, cargo, purpose and schedule route/date/timing in the application. Current operational permit references report validity as ±72 hours from the approved departure date; the issued CAA approval controls.",source:"Maldives CAA current overfly-permit requirements + current operational permit cross-check"},
  MONGOLIA:{name:"Mongolia",firs:["ZMUB"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
  MYANMAR:{name:"Myanmar",firs:["VYYF","VYYY","VGFR"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Myanmar as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
- NEPAL:{name:"Nepal",firs:["VNSM"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Nepal as a 72-hour overflight permit.",source:"UPS operational permit playbook",handler:"UPS / operational permit process",action:"Use applicable UPS permit request process"}
+ NEPAL:{name:"Nepal",firs:["VNSM"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Nepal as a 72-hour overflight permit.",source:"UPS operational permit playbook",handler:"UPS / operational permit process",action:"Use applicable UPS permit request process"},
  NORTH_KOREA:{name:"North Korea",firs:["ZKKP"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
  OMAN:{name:"Oman",firs:["OOMM"],status:"YES",validity:"48 hours",entryExit:true,note:"UPS operational permit playbook lists Oman as a 48-hour overflight permit handled through Prime Trip Support. This is the UPS operational window used for scheduled permit planning.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  PAKISTAN:{name:"Pakistan",firs:["OPKR"],status:"YES",validity:"48 hours",entryExit:true,note:"UPS operational permit playbook lists Pakistan as a 48-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
@@ -92,21 +92,21 @@ const RULES={
  QATAR:{name:"Qatar",firs:["OTDF"],status:"CONDITIONAL",validity:"Per scheduled authorization / traffic rights",entryExit:true,note:"QCAA’s current flight-clearance portal explicitly covers civil non-scheduled flights and says it is for non-scheduled operations only. QCAA separately manages regular airline schedules and changes under the applicable air transport agreements. Therefore the non-scheduled overflight-permit process should not be applied to a delayed UPS scheduled transit; verify the applicable scheduled traffic-rights/authorization and any schedule-change condition.",source:"QCAA current Non-Scheduled Flights Service + Airline Companies scheduled-service framework"},
  SAUDI_ARABIA:{name:"Saudi Arabia",firs:["OEJD","OERK"],status:"YES",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Saudi Arabia as a 24-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  SINGAPORE:{name:"Singapore",firs:["WSJC"],status:"NO",validity:"FPL only for overflight; permit for takeoff/landing",entryExit:false,note:"UPS operational permit playbook states Singapore does not require a permit for overflight; a permit is needed when taking off or landing there.",source:"UPS operational permit playbook",handler:"FPL only",action:"No overflight permit; permit only for takeoff/landing"},
- SOUTH_KOREA:{name:"South Korea",firs:["RKRR"],status:"CONDITIONAL",validity:"24 hours for takeoff/landing; route exception for overflight",entryExit:true,note:"UPS operational permit playbook: no permit for overflight between ONIKU-LAMEN or LAMEN-BEDAR. Any other overflight or ICN takeoff/landing requires handling.",source:"UPS operational permit playbook",handler:"UPS Korea",action:"No permit on ONIKU-LAMEN / LAMEN-BEDAR; other overflight or ICN takeoff/landing email UPS Korea"}
- SRI_LANKA:{name:"Sri Lanka",firs:["VCCC"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Sri Lanka as a 72-hour overflight permit.",source:"UPS operational permit playbook",handler:"UPS / operational permit process",action:"Use applicable UPS permit request process"}
- TAIWAN:{name:"Taiwan",firs:["RCAA"],status:"YES",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Taiwan as a 24-hour overflight permit.",source:"UPS operational permit playbook",handler:"UPS Taiwan",action:"Use Taiwan Aircom template"}
+ SOUTH_KOREA:{name:"South Korea",firs:["RKRR"],status:"CONDITIONAL",validity:"24 hours for takeoff/landing; route exception for overflight",entryExit:true,note:"UPS operational permit playbook: no permit for overflight between ONIKU-LAMEN or LAMEN-BEDAR. Any other overflight or ICN takeoff/landing requires handling.",source:"UPS operational permit playbook",handler:"UPS Korea",action:"No permit on ONIKU-LAMEN / LAMEN-BEDAR; other overflight or ICN takeoff/landing email UPS Korea"},
+ SRI_LANKA:{name:"Sri Lanka",firs:["VCCC"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Sri Lanka as a 72-hour overflight permit.",source:"UPS operational permit playbook",handler:"UPS / operational permit process",action:"Use applicable UPS permit request process"},
+ TAIWAN:{name:"Taiwan",firs:["RCAA"],status:"YES",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Taiwan as a 24-hour overflight permit.",source:"UPS operational permit playbook",handler:"UPS Taiwan",action:"Use Taiwan Aircom template"},
  HONG_KONG:{name:"Hong Kong",firs:["VHHK"],status:"NO",validity:"No permit for normal transit",entryExit:false,note:"Hong Kong AIP GEN 1.2 states that flights transiting Hong Kong airspace without landing do not require prior permission. Exceptions include state aircraft over Hong Kong territory, aircraft carrying munitions of war, aircraft carrying dangerous goods, or a flight specifically notified by the Director-General of Civil Aviation. For a normal UPS scheduled transit, do not apply the old generic 24-hour permit rule.",source:"Hong Kong AIP GEN 1.2 §8 Overflights • current scheduled-airline audit"},
  MACAU:{name:"Macau",firs:["VMMC"],status:"CONDITIONAL",validity:"Per scheduled authorization / traffic rights",entryExit:true,note:"AACM separates scheduled and non-scheduled authority. Its published airspace-use approval language applies to non-scheduled operations, while scheduled services to/from Macao operate under flight authorization and bilateral air-service rights. The previous generic 24-hour validity is not supported for a UPS scheduled transit. For transit-only scheduled overflight, verify that the applicable first-freedom/bilateral authorization covers the operation and use its terms for any schedule change.",source:"Macao AACM scheduled/non-scheduled flight approval framework + Air Rights guidance • current scheduled-airline audit"},
  RUSSIA:{name:"Russia",firs:["UUWV","ULLL","UWWW","USSV","UNNT","UIII","UHWW","UAAA"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Transcontinental Russia is included for Asia route screening; exact permit requirements depend on route, operator status and current Russian AIP/authorization.",source:"Russian AIP/CAA review required"},
  TAJIKISTAN:{name:"Tajikistan",firs:["UTDD"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Tajikistan as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  THAILAND:{name:"Thailand",firs:["VTBB"],status:"YES",landingStatus:"YES",landingNote:"Landing/takeoff permit applies for Thailand; BKK operations handles the landing authorization.",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Thailand as a 24-hour overflight permit for overflight only. BKK takeoff/landing operations are handled separately by UPS. Prime Trip Support handles overflight permit requests.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  TIMOR_LESTE:{name:"Timor-Leste",firs:["WAAF"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
- TURKEY:{name:"Türkiye",firs:["LTAA"],status:"NO",validity:"No Ad Hoc overflight permit; Item 18 statement required",entryExit:false,note:"UPS operational permit playbook lists Turkey among countries that do not require permits, but the flight plan must include a GENERAL CARGO FLIGHT statement in Item 18.",source:"UPS operational permit playbook",handler:"FPL / operational requirement",action:"No overflight permit; add GENERAL CARGO FLIGHT in Item 18"}
+ TURKEY:{name:"Türkiye",firs:["LTAA"],status:"NO",validity:"No Ad Hoc overflight permit; Item 18 statement required",entryExit:false,note:"UPS operational permit playbook lists Turkey among countries that do not require permits, but the flight plan must include a GENERAL CARGO FLIGHT statement in Item 18.",source:"UPS operational permit playbook",handler:"FPL / operational requirement",action:"No overflight permit; add GENERAL CARGO FLIGHT in Item 18"},
  TURKMENISTAN:{name:"Turkmenistan",firs:["UTAA"],status:"YES",validity:"96 hours",entryExit:true,note:"UPS operational permit playbook lists Turkmenistan as a 96-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  UAE:{name:"United Arab Emirates",firs:["OMAE"],status:"NO",validity:"No ad hoc permit for regular UPS overflight",entryExit:false,note:"UPS operational permit playbook states that UAE is not required for regular UPS flights; UAE handling is only needed for CMB flights. Do not apply charter/non-scheduled permit requirements to a normal UPS overflight.",source:"UPS operational permit playbook",handler:"No action for regular UPS",action:"CMB flights only"},
  UZBEKISTAN:{name:"Uzbekistan",firs:["UTTT"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Uzbekistan as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
- VIETNAM:{name:"Vietnam",firs:["VVVV","VVHM","VVHN"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Vietnam as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"}
- YEMEN:{name:"Yemen",firs:["OYSC"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"}
+ VIETNAM:{name:"Vietnam",firs:["VVVV","VVHM","VVHN"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Vietnam as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
+ YEMEN:{name:"Yemen",firs:["OYSC"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
  ALBANIA:{name:"Albania",firs:["LAAA"],status:"NO",validity:"No ad hoc permit",entryExit:false,note:"UPS operational permit playbook lists Albania among countries that do not require permits for scheduled UPS ad hoc operations.",source:"UPS operational permit playbook"},
  CROATIA:{name:"Croatia",firs:["LDZO"],status:"NO",validity:"No ad hoc permit",entryExit:false,note:"UPS operational permit playbook lists Croatia among countries that do not require permits for scheduled UPS ad hoc operations.",source:"UPS operational permit playbook"},
  BOSNIA_HERZEGOVINA:{name:"Bosnia & Herzegovina",firs:["LQSB"],status:"NO",validity:"No ad hoc permit",entryExit:false,note:"UPS operational permit playbook lists Bosnia & Herzegovina among countries that do not require permits for scheduled UPS ad hoc operations.",source:"UPS operational permit playbook"},
@@ -156,7 +156,7 @@ const RULES={
 
 };
 
-const SAMPLE=\`(FPL-UPS11-IS
+const SAMPLE=`(FPL-UPS11-IS
 -B748/H-SADE3FGHIJ1J2J4J5M1P2RWXYZ/LB1D1
 -RKSI0225
 -N0506F320 BOPTA2Y BOPTA Z51 BEDES Y711 PONIK A593 LAMEN/K0941S0980 A593 PK R343 MADUK W51 LEGIV W164 ADGOL W50 XSH W80 IDGAG A581 QNX W136 XISLI A581 SGM A599 LINSO/M084F340 A201 PPT Q18 BODOG A201 LKN R594 JAL
@@ -179,7 +179,7 @@ function detectFirs(p){
  // FIRs are detection inputs only. They are immediately collapsed to unique COUNTRIES.
  // Multiple FIRs, FIR re-entries, or adjacent FIRs within the same country never create
  // separate permit rows or separate permit applications.
- return Object.entries(RULES).filter(([k,r])=>r.firs.some(f=>new RegExp('\\b'+f+'\\b').test(all))).map(x=>x[0]);
+ return Object.entries(RULES).filter(([k,r])=>r.firs.some(f=>new RegExp('(?:^|\\s)'+f+'(?:\\d{4}\\b|\\b)').test(all))).map(x=>x[0]);
 }
 function routeCountryOverrides(p){
  const r=p.route.toUpperCase(),out=[];
@@ -198,7 +198,7 @@ function countryList(p){
  const route=String(p.route||'').toUpperCase();
  // UPS operational exception: ZJ/Sanya FIR-only over-water transit does not require a China permit.
  const chinaFirs=(RULES.CHINA.firs||[]).filter(x=>x!=="ZJSA");
- const chinaOther=chinaFirs.some(x=>new RegExp('\\b'+x+'\\b').test(eet+' '+route));
+ const chinaOther=chinaFirs.some(x=>new RegExp('(?:^|\\s)'+x+'(?:\\d{4}\\b|\\b)').test(eet+' '+route));
  if(found.includes('CHINA') && /\bZJSA\b/.test(eet) && !chinaOther) found.splice(found.indexOf('CHINA'),1);
  return found;
 }
@@ -318,7 +318,7 @@ const CROSSING_PATTERNS=[
   eet:{THAILAND:{entry:'0125',exit:'0206'}}
  },
  {id:'UPS54_RCTP_VHHH',origin:'RCTP',destination:'VHHH',
-  routeIncludes:['CHALI','MKG','ELATO','MAGOG','ENPET','FISHA','ABBEY'],
+  routeIncludes:['MKG','ELATO','MAGOG','ENPET','FISHA','ABBEY'],
   source:'SOURCE-VERIFIED UPS54 OFP',
   crossings:{TAIWAN:{entry:'RCTP',exit:'ELATO'}},
   eet:{TAIWAN:{entry:'EOBT',exit:'0041'}}
@@ -460,7 +460,7 @@ function weekdayNum(dateStr){
 }
 function eetClock(eobt,eet,dateStr){
  if(!/^\d{4}$/.test(eobt)||!/^\d{4}$/.test(eet)||!/^\d{6}$/.test(dateStr)) return {time:'REVIEW',date:dateStr,valid:false};
- const d=new Date(Date.UTC(2000+Number(dateStr.slice(0,2)),Number(dateStr.slice(2,4))-1,Number(dateStr.slice(4,6)),Number(eobt.slice(0,2)),Number(eobt.slice(2)));
+ const d=new Date(Date.UTC(2000+Number(dateStr.slice(0,2)),Number(dateStr.slice(2,4))-1,Number(dateStr.slice(4,6)),Number(eobt.slice(0,2)),Number(eobt.slice(2))));
  d.setUTCMinutes(d.getUTCMinutes()+Number(eet.slice(0,2))*60+Number(eet.slice(2)));
  const yy=String(d.getUTCFullYear()).slice(2),mm=String(d.getUTCMonth()+1).padStart(2,'0'),dd=String(d.getUTCDate()).padStart(2,'0');
  return {time:String(d.getUTCHours()).padStart(2,'0')+String(d.getUTCMinutes()).padStart(2,'0'),date:yy+mm+dd,valid:true};
@@ -483,7 +483,7 @@ function permitValidityStatus(country,issuedAt,revisedEobt){
  const v=String(r.validity||'').toUpperCase();
  if(!issuedAt) return {status:'REVIEW',reason:'Permit issue time not entered'};
  if(!v || v==='REVIEW' || v.includes('ADC')) return {status:'REVIEW',reason:'Permit validity not verified'};
- const h=(v.match(/(\\d+)\\s*HOUR/)||[])[1];
+ const h=(v.match(/(\d+)\s*HOUR/)||[])[1];
  if(!h) return {status:'REVIEW',reason:'Permit validity format not recognized'};
  const start=new Date(issuedAt);
  const check=new Date(revisedEobt||issuedAt);
@@ -530,9 +530,10 @@ function render(){
  const permits=countries.filter(c=>{const r=RULES[c];return r.status==='YES'||r.status==='CONDITIONAL';}).length,review=countries.filter(c=>RULES[c].status==='REVIEW').length;
  byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Countries',countries.length],['Overflight / Review',permits+' / '+review]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
  byId('route').textContent=(p.route||'No route parsed')+(window.routeWarning?'\n\n⚠ '+window.routeWarning:''); byId('fplMeta').innerHTML=[['EOBT',p.eobt||'REVIEW'],['EET',p.eetTotal||'REVIEW'],['FL',p.level||'REVIEW'],['DOF',p.date||'REVIEW'],['REG',p.reg||'REVIEW']].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
- byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...RULES[c],status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':RULES[c].status},x=permitBlock(c,p),l=landingBlock(c,p);return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(l.status==='YES'?'yes':l.status==='REVIEW'?'review':'na')+'">'+l.status+'</span><br><span class="source">'+(l.airport?l.operation+' '+l.airport:l.reason)+'</span></td><td>'+r.validity+'</td><td>'+((r.handler||'—')+'<br><span class="source">'+(r.action||'')+'</span>')+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.entryTime+' / '+x.exitTime+' • '+x.confidence+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td>'+((r.status==='YES'||r.status==='CONDITIONAL')?'<button class="btn small" onclick="showEmail(\\''+c+'\\')">OVF EMAIL</button>':'—')+' '+(l.status==='YES'?'<button class="btn small" onclick="showLandingEmail(\\''+c+'\\')">T/L EMAIL</button>':'')+'</td></tr>'}).join(''):'<tr><td colspan="9">No Asia country match detected. Manual route review still recommended.</td></tr>';
+ byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...RULES[c],status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':RULES[c].status},x=permitBlock(c,p),l=landingBlock(c,p);return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(l.status==='YES'?'yes':l.status==='REVIEW'?'review':'na')+'">'+l.status+'</span><br><span class="source">'+(l.airport?l.operation+' '+l.airport:l.reason)+'</span></td><td>'+r.validity+'</td><td>'+((r.handler||'—')+'<br><span class="source">'+(r.action||'')+'</span>')+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.entryTime+' / '+x.exitTime+' • '+x.confidence+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td>'+((r.status==='YES'||r.status==='CONDITIONAL')?'<button class="btn small" onclick="showEmail(\''+c+'\')">OVF EMAIL</button>':'—')+' '+(l.status==='YES'?'<button class="btn small" onclick="showLandingEmail(\''+c+'\')">T/L EMAIL</button>':'')+'</td></tr>'}).join(''):'<tr><td colspan="9">No Asia country match detected. Manual route review still recommended.</td></tr>';
 }
-window.showEmail=function(c){byId('email').textContent=emailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}\nwindow.showLandingEmail=function(c){byId('email').textContent=landingEmailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
+window.showEmail=function(c){byId('email').textContent=emailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
+window.showLandingEmail=function(c){byId('email').textContent=landingEmailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
 byId('check').onclick=render;
 byId('sample').onclick=function(){byId('fpl').value=SAMPLE;render()};
 byId('clear').onclick=function(){byId('fpl').value='';byId('results').classList.add('hidden');byId('emailCard').classList.add('hidden')};
