@@ -318,10 +318,16 @@ const CROSSING_PATTERNS=[
   eet:{THAILAND:{entry:'0125',exit:'0206'}}
  },
  {id:'UPS54_RCTP_VHHH',origin:'RCTP',destination:'VHHH',
-  routeIncludes:['MKG','ELATO','ABBEY'],
+  routeIncludes:['CHALI','MKG','ELATO','V522','ABBEY'],
   source:'SOURCE-VERIFIED UPS54 OFP',
-  crossings:{TAIWAN:{entry:'RCTP',exit:'ELATO'}},
-  eet:{TAIWAN:{entry:'EOBT',exit:'0041'}}
+  crossings:{
+   TAIWAN:{entry:'RCTP',exit:'ELATO'},
+   HONG_KONG:{entry:'ELATO',exit:'VHHH'}
+  },
+  eet:{
+   TAIWAN:{entry:'EOBT',exit:'0041'},
+   HONG_KONG:{entry:'0041',exit:'0122'}
+  }
  },
  {id:'UPS504_RCTP_RPLC',origin:'RCTP',destination:'RPLC',
   routeIncludes:['TINHO','HCN','POTIB','SANRO','MALIB'],
