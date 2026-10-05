@@ -523,43 +523,60 @@ function crossingPatternsFor(country,p){
 
 function ofpFirBoundaryFor(country,p){
  /*
-  COUNTRY-LEVEL FIR BOUNDARY LOGIC:
-  - A country may contain multiple FIRs.
-  - A route may transition between those FIRs without leaving the country.
-  - Therefore collect EVERY OFP FIR section whose FIR code belongs to RULES[country].firs.
-  - Country entry = first waypoint in the first applicable country FIR section.
+  COUNTRY-LEVEL FIR BOUNDARY LOGIC
+  - A country can have multiple FIRs.
+  - FIR changes inside the same country are NOT country boundaries.
+  - Collect every OFP FIR section whose code belongs to this country.
+  - Use the OFP EET/FIR anchor when it identifies the actual FIR entry point.
+    This matters because LIDO can print a FIR header after the boundary waypoint
+    (UPS72: RJJJ0356 aligns with NIPPI0356, while the FUKUOKA header is printed
+    immediately before NANAC).
+  - Country entry = first applicable FIR entry waypoint.
   - Country exit  = last waypoint in the last applicable country FIR section.
-  - FIR-to-FIR transitions inside the same country are NOT country boundaries.
-  - Use the waypoint's own cumulative OFP EET (the =WAYPOINT row), not the next FIR
-    anchor, so the displayed boundary time is the actual waypoint crossing time.
+  - Boundary times come from the waypoint's cumulative OFP EET.
  */
  const firSet=new Set((RULES[country]?.firs||[]).map(x=>String(x).toUpperCase()));
  const raw=String(p.raw||'');
  if(!raw||!firSet.size)return null;
 
  const lines=raw.split(/\r?\n/);
- const sections=[];
+ const anchors=parseEetAnchors(p.eet||'');
 
  function waypointFromLine(line){
-  // OFP waypoint rows look like: "BULAN        E124 45.6 ..."
   const m=String(line||'').match(/^\s*([A-Z][A-Z0-9]{2,5})\s+[EW]\d{3}\s+/);
   return m?m[1].toUpperCase():null;
  }
 
- function waypointEetAt(index,name){
-  // The cumulative EET is normally on the immediately following =WAYPOINT row:
-  // "=RECON ... 10.10". Search only a few lines so unrelated later data is not used.
+ function cumulativeEetForEqualsLine(line,name){
   const target=new RegExp('^\\s*='+name+'\\b','i');
-  for(let k=index+1;k<Math.min(lines.length,index+5);k++){
-   if(/FIR\/[A-Z0-9]{2,6}/i.test(lines[k]))break;
-   if(target.test(lines[k])){
-    const m=lines[k].match(/\b(\d{2})[.:](\d{2})\b/);
-    if(m)return m[1]+m[2];
-   }
+  if(!target.test(line))return null;
+  const m=String(line).match(/\b(\d{2})[.:](\d{2})\b/);
+  return m?m[1]+m[2]:null;
+ }
+
+ // Build a route-wide waypoint -> cumulative EET map from the =WAYPOINT rows.
+ // These are the actual OFP cumulative times, not leg durations.
+ const waypointEets=new Map();
+ for(const line of lines){
+  const m=String(line||'').match(/^\s*=([A-Z][A-Z0-9]{2,5})\b/i);
+  if(!m)continue;
+  const name=m[1].toUpperCase();
+  const eet=cumulativeEetForEqualsLine(line,name);
+  if(eet)waypointEets.set(name,eet);
+ }
+
+ function waypointForFirAnchor(fir){
+  const a=anchors.find(x=>x.fir===fir);
+  if(!a)return null;
+  // Prefer an exact cumulative-EET match. FIR anchors in the OFP are intended
+  // to identify the FIR transition and commonly align exactly with a waypoint.
+  for(const [name,eet] of waypointEets.entries()){
+   if(eet===a.time)return {name,eet};
   }
   return null;
  }
 
+ const sections=[];
  for(let i=0;i<lines.length;i++){
   const hm=lines[i].match(/FIR\/([A-Z0-9]{2,6})/i);
   if(!hm)continue;
@@ -568,15 +585,10 @@ function ofpFirBoundaryFor(country,p){
 
   const points=[];
   for(let j=i+1;j<lines.length;j++){
-   // A new FIR header closes this section. Do NOT close on an FIR belonging to
-   // another country permanently; later matching country FIRs are collected too.
    if(/FIR\/[A-Z0-9]{2,6}/i.test(lines[j]))break;
-
    const name=waypointFromLine(lines[j]);
    if(!name)continue;
-
-   const eet=waypointEetAt(j,name);
-   points.push({name,eet});
+   points.push({name,eet:waypointEets.get(name)||null});
   }
 
   if(points.length)sections.push({fir,points});
@@ -584,8 +596,18 @@ function ofpFirBoundaryFor(country,p){
 
  if(!sections.length)return null;
 
- const first=sections[0], last=sections[sections.length-1];
- const entryPoint=first.points[0], exitPoint=last.points[last.points.length-1];
+ const first=sections[0];
+ const last=sections[sections.length-1];
+
+ // If the first FIR anchor maps to a waypoint elsewhere in the OFP, use that
+ // waypoint as the actual country entry. Otherwise fall back to the first point
+ // printed beneath the FIR header.
+ const anchoredEntry=waypointForFirAnchor(first.fir);
+ const entryPoint=anchoredEntry||first.points[0];
+
+ // Exit is the final route waypoint contained by the final applicable FIR
+ // section. Its cumulative EET is taken directly from the OFP.
+ const exitPoint=last.points[last.points.length-1];
 
  return {
   firstFir:first.fir,
