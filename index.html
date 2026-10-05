@@ -219,27 +219,38 @@ function countryList(p){
  const chinaOther=chinaFirs.some(x=>new RegExp('(?:^|\\s)'+x+'(?:\\d{4}\\b|\\b)').test(eet+' '+route));
  if(found.includes('CHINA') && /(?:^|\\s)ZJSA\\d{4}\\b/.test(eet) && !chinaOther) found.splice(found.indexOf('CHINA'),1);
  const anchors=parseEetAnchors(eet);
- const routeTokens=route.split(/\\s+/).filter(Boolean);
- const overrideFixes={
-  CHINA:['LAMEN','PK','MADUK','LEGIV','ADGOL','IDGAG','QNX','XISLI','SGM'],
-  MYANMAR:['LINSO','ANSOS','LSO'],
-  BANGLADESH:['TEBUL','AGARTALA','BOGEP','RAJ'],
-  TAIWAN:['RCAA','HLG','MOLKA','POTIB','TNN','TONGA','PILOX'],
-  INDIA:['LKN','JAL']
- };
+ const routeTokensLocal=route.split(/\\s+/).filter(Boolean).map(t=>t.split('/')[0]);
+
  const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
  const orderIndex=country=>{
-  // Always put the country of departure first. The flight starts inside that
-  // country, so it is the first country in the operational sequence even when
-  // the departure FIR is not present as an EET anchor.
   if(country===originCountry) return -100000;
-  // For every other country, use the earliest verified FIR anchor on the route.
-  // This preserves actual geographic/operational order instead of RULES object order.
+
+  // Verified route patterns are the primary source for country order. This is
+  // essential when multiple countries share the same FIR (e.g. Myanmar and
+  // India both being represented by VYYF on UPS9).
+  const pattern=typeof crossingPatternFor==='function'?crossingPatternFor(country,p):null;
+  if(pattern?.crossings?.[country]){
+   const c=pattern.crossings[country];
+   const fixes=[c.entry,c.exit].filter(Boolean);
+   const positions=fixes.map(f=>routeTokensLocal.indexOf(String(f).toUpperCase())).filter(i=>i>=0);
+   if(positions.length)return Math.min(...positions);
+  }
+
+  // Fall back to the earliest verified FIR anchor only when no route-specific
+  // crossing pattern is available.
   const ai=anchors.findIndex(a=>(RULES[country]?.firs||[]).includes(a.fir));
-  if(ai>=0) return ai;
-  // If no FIR EET anchor is available, use the earliest known route fix.
-  const ri=routeTokens.findIndex(t=>(overrideFixes[country]||[]).includes(t));
-  return ri>=0 ? 10000+ri : 50000;
+  if(ai>=0)return 1000+ai;
+
+  // Final fallback: known country-specific route fixes.
+  const overrideFixes={
+   CHINA:['LAMEN','PK','MADUK','LEGIV','ADGOL','IDGAG','QNX','XISLI','SGM'],
+   MYANMAR:['LINSO','ANSOS','LSO','TANEK','DWI','LALIT','LULDA'],
+   BANGLADESH:['TEBUL','AGARTALA','BOGEP','RAJ'],
+   TAIWAN:['RCAA','HLG','MOLKA','POTIB','TNN','TONGA','PILOX'],
+   INDIA:['LKN','JAL','LULDA','XIVIL']
+  };
+  const ri=routeTokensLocal.findIndex(t=>(overrideFixes[country]||[]).includes(t));
+  return ri>=0?2000+ri:50000;
  };
  return found.map((country,i)=>({country,i,order:orderIndex(country)}))
   .sort((a,b)=>a.order-b.order||a.i-b.i).map(x=>x.country);
@@ -421,13 +432,15 @@ const CROSSING_PATTERNS=[
    VIETNAM:{entry:'ASSAD',exit:'VILAO'},
    LAOS:{entry:'VILAO',exit:'SAVANNAKHET'},
    THAILAND:{entry:'SAVANNAKHET',exit:'TANEK'},
-   MYANMAR:{entry:'TANEK',exit:'LULDA'}
+   MYANMAR:{entry:'TANEK',exit:'LULDA'},
+   INDIA:{entry:'LULDA',exit:'VOBL'}
   },
   eet:{
    VIETNAM:{entry:'0105',exit:'0119'},
    LAOS:{entry:'0119',exit:'0130'},
    THAILAND:{entry:'0130',exit:'0218'},
-   MYANMAR:{entry:'0218',exit:'0252'}
+   MYANMAR:{entry:'0218',exit:'0252'},
+   INDIA:{entry:'0252',exit:'EOBT'}
   }
  },
  {id:'UPS15_ZGSZ_VIDP',origin:'ZGSZ',destination:'VIDP',
@@ -505,6 +518,18 @@ function crossingPatternFor(country,p){
    pattern.crossings?.[country]
  );
  if(exact)return exact;
+
+ // UPS9 is a source-verified corridor. If its key boundary fixes are present,
+ // retain the verified country crossings even if an OFP route formatting change
+ // prevents the long route signature from matching.
+ if(origin==='ZGSZ'&&destination==='VOBL'){
+  const ups9=CROSSING_PATTERNS.find(x=>x.id==='UPS9_ZGSZ_VOBL'&&x.crossings?.[country]);
+  if(ups9){
+   const c=ups9.crossings[country];
+   const needed=[c.entry,c.exit].filter(x=>x&&x!==origin&&x!==destination);
+   if(needed.every(x=>r.includes(String(x).toUpperCase())))return ups9;
+  }
+ }
  // Verified corridor fallback: allow SID/transition changes. For an origin-country
  // pattern only the named exit fix is required; transit patterns require both
  // named boundary fixes. This prevents valid UPS54 RCTP->VHHH Taiwan data
@@ -726,8 +751,8 @@ function crossingFor(country,p){
   // Arrival side: use the literal first fix listed inside the arriving country's
   // FIR section. Do not substitute the FIR EET anchor/boundary entry when LIDO
   // prints that anchor before the FIR header.
-  const firstFix=auto?.firstFix||pattern?.crossings?.[country]?.entry||'REVIEW';
-  const firstEet=auto?.firstFixEet||pattern?.eet?.[country]?.entry||null;
+  const firstFix=pattern?.crossings?.[country]?.entry||auto?.firstFix||'REVIEW';
+  const firstEet=pattern?.eet?.[country]?.entry||auto?.firstFixEet||null;
   return {
    entry:firstFix,
    exit:destinationIcao,
