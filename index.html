@@ -417,7 +417,7 @@ const CROSSING_PATTERNS=[
   source:'SOURCE-VERIFIED UPS9 ZGSZ-VOBL OFP',
   crossings:{
    HONG_KONG:{entry:'SIERA',exit:'SIKOU'},
-   CHINA:{entry:'SIKOU',exit:'ASSAD'},
+   CHINA:{entry:'SIKOU',exit:'ASSAD',segments:[{entry:'ZGSZ',exit:'SIERA'},{entry:'SIKOU',exit:'ASSAD'}]},
    VIETNAM:{entry:'ASSAD',exit:'VILAO'},
    LAOS:{entry:'VILAO',exit:'SAVANNAKHET'},
    THAILAND:{entry:'SAVANNAKHET',exit:'TANEK'},
@@ -667,7 +667,7 @@ function crossingFor(country,p){
     exit:'ASSAD',
     entryTime:p.eobt||'—',
     exitTime:pattern.eet?.VIETNAM?.entry?eetClock(p.eobt,pattern.eet.VIETNAM.entry,p.date).time:'REVIEW',
-    confidence:'China permit span ZGSZ → ASSAD • Hong Kong FIR interruption SIERA → SIKOU'
+    confidence:'China permit span ZGSZ → ASSAD • segments ZGSZ → SIERA / SIKOU → ASSAD • Hong Kong FIR SIERA → SIKOU'
    };
   }
   const sequence=countryList(p);
