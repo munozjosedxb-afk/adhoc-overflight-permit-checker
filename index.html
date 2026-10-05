@@ -259,14 +259,16 @@ const CROSSING_PATTERNS=[
   }
  },
  {id:'UPS11_RKSI_VIDP',origin:'RKSI',destination:'VIDP',
-  routeIncludes:['BOPTA','PONIK','LAMEN','MADUK','LEGIV','ADGOL','IDGAG','QNX','XISLI','SGM','LINSO','LSO','ANSOS','TEBUL','AGARTALA','BOGEP','RAJSHAHI','TEBID','PATNA','BODOG','LKN','JAL'],
+  routeIncludes:['BOPTA','PONIK','LAMEN','MADUK','LEGIV','ADGOL','IDGAG','QNX','XISLI','SGM','GENGMA','LINSO','LSO','ANSOS','TEBUL','AGARTALA','BOGEP','RAJSHAHI','TEBID','PATNA','BODOG','LKN','JAL'],
   source:'SOURCE-VERIFIED UPS11 OFP',
   crossings:{
+   CHINA:{entry:'LAMEN',exit:'GENGMA'},
    MYANMAR:{entry:'LINSO',exit:'LSO'},
    BANGLADESH:{entry:'BOGEP',exit:'RAJ'},
    INDIA:{entry:'LKN',exit:'JAL'}
   },
   eet:{
+   CHINA:{entry:'0058',exit:'0400'},
    MYANMAR:{entry:'0401',exit:'0409'},
    BANGLADESH:{entry:'0458',exit:'0510'},
    INDIA:{entry:'0604',exit:'0615'}
