@@ -176,6 +176,8 @@ function parseFpl(raw){
 }
 function detectFirs(p){
  const all=(p.eet+' '+p.route).toUpperCase();
+ // FIRs are only detection inputs. The result is immediately reduced to unique
+ // countries, because the permit decision is made at country level, not FIR level.
  return Object.entries(RULES).filter(([k,r])=>r.firs.some(f=>new RegExp('\\b'+f+'\\b').test(all))).map(x=>x[0]);
 }
 function routeCountryOverrides(p){
@@ -188,6 +190,8 @@ function routeCountryOverrides(p){
  return out;
 }
 function countryList(p){
+ // One permit decision per country, even when the route crosses multiple FIRs
+ // belonging to that same country. FIRs never create separate permit rows.
  const found=[...new Set([...detectFirs(p),...routeCountryOverrides(p)])];
  const eet=String(p.eet||'').toUpperCase();
  const route=String(p.route||'').toUpperCase();
@@ -425,7 +429,7 @@ function crossingPatternsFor(country,p){
  );
 }
 
-function crossingFor(country,p){ const pattern=crossingPatternFor(country,p); if(pattern){ const c=pattern.crossings[country],t=pattern.eet?.[country]||{}; const ec=t.entry==='EOBT'?{time:p.eobt||'REVIEW'}:t.entry?eetClock(p.eobt,t.entry,p.date):{time:'REVIEW'}; const xc=t.exit==='EOBT'?{time:p.eobt||'REVIEW'}:t.exit?eetClock(p.eobt,t.exit,p.date):{time:'REVIEW'}; return {entry:c.entry,exit:c.exit,entryTime:ec.time,exitTime:xc.time,confidence:pattern.source}; } const firs=RULES[country]?.firs||[],anchors=parseEetAnchors(p.eet||''); const hits=anchors.map((x,i)=>({x,i})).filter(x=>firs.includes(x.x.fir)); if(!hits.length)return {entry:'REVIEW',exit:'REVIEW',entryTime:'REVIEW',exitTime:'REVIEW',confidence:'REVIEW'}; const segments=hits.map((h,i)=>({fir:h.x.fir,entryTime:i?eetClock(p.eobt,anchors[h.i-1].time,p.date).time:'REVIEW',exitTime:eetClock(p.eobt,h.x.time,p.date).time})); const first=segments[0],last=segments[segments.length-1]; return {entry:'REVIEW',exit:'REVIEW',entryTime:first.entryTime,exitTime:last.exitTime,segments,confidence:segments.length>1?'EET-VERIFIED segmented FIR timing — multiple non-contiguous segments':'EET-VERIFIED FIR boundary timing'}; }
+function crossingFor(country,p){ const pattern=crossingPatternFor(country,p); if(pattern){ const c=pattern.crossings[country],t=pattern.eet?.[country]||{}; const ec=t.entry==='EOBT'?{time:p.eobt||'REVIEW'}:t.entry?eetClock(p.eobt,t.entry,p.date):{time:'REVIEW'}; const xc=t.exit==='EOBT'?{time:p.eobt||'REVIEW'}:t.exit?eetClock(p.eobt,t.exit,p.date):{time:'REVIEW'}; return {entry:c.entry,exit:c.exit,entryTime:ec.time,exitTime:xc.time,confidence:pattern.source}; } const firs=RULES[country]?.firs||[],anchors=parseEetAnchors(p.eet||''); const hits=anchors.map((x,i)=>({x,i})).filter(x=>firs.includes(x.x.fir)); if(!hits.length)return {entry:'REVIEW',exit:'REVIEW',entryTime:'REVIEW',exitTime:'REVIEW',confidence:'REVIEW'}; const first=hits[0],last=hits[hits.length-1]; const entryTime=first.i?eetClock(p.eobt,anchors[first.i-1].time,p.date).time:'REVIEW'; const exitTime=eetClock(p.eobt,last.x.time,p.date).time; return {entry:'REVIEW',exit:'REVIEW',entryTime,exitTime,confidence:hits.length>1?'EET timing across multiple FIR segments within one country':'EET timing'}; }
 function permitBlock(country,p){return crossingFor(country,p)}
 function weekdayNum(dateStr){
  if(!/^\d{6}$/.test(dateStr)) return null;
