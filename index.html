@@ -324,6 +324,60 @@ const CROSSING_PATTERNS=[
   crossings:{TAIWAN:{entry:'RCTP',exit:'HCN'},PHILIPPINES:{entry:'POTIB',exit:'RPLC'}},
   eet:{TAIWAN:{entry:'EOBT',exit:'0032'},PHILIPPINES:{entry:'0039',exit:'0134'}}
  },
+ {id:'UPS1_VHHH_VOBL',origin:'VHHH',destination:'VOBL',
+  routeIncludes:['PECAN','IDOSI','IKELA','BUNTA','TANNA','PAPRA','BUTRA','POTEV','TANEK','DWI','LALIT'],
+  source:'SOURCE-VERIFIED UPS1 VHHH-VOBL OFP',
+  crossings:{
+   CHINA:{entry:'PECAN',exit:'IKELA'},
+   VIETNAM:{entry:'BUNTA',exit:'TANNA'},
+   LAOS:{entry:'PAPRA',exit:'BUTRA'},
+   THAILAND:{entry:'POTEV',exit:'TANEK'},
+   MYANMAR:{entry:'DWI',exit:'LALIT'}
+  }
+ },
+ {id:'UPS506_RCTP_VOBL',origin:'RCTP',destination:'VOBL',
+  routeIncludes:['CHALI','ELATO','ABBEY','PECAN','IKELA','BUNTA','TANNA','PAPRA','BUTRA','POTEV','TANEK','DWI','LALIT','LULDA'],
+  source:'SOURCE-VERIFIED UPS506 RCTP-VOBL OFP',
+  crossings:{
+   TAIWAN:{entry:'RCTP',exit:'ELATO'},
+   VIETNAM:{entry:'BUNTA',exit:'TANNA'},
+   LAOS:{entry:'PAPRA',exit:'BUTRA'},
+   THAILAND:{entry:'POTEV',exit:'TANEK'},
+   MYANMAR:{entry:'DWI',exit:'LALIT'},
+   INDIA:{entry:'LULDA',exit:'VOBL'}
+  }
+ },
+ {id:'UPS9_ZGSZ_VOBL',origin:'ZGSZ',destination:'VOBL',
+  routeIncludes:['SIKOU','SAMAS','AGPOR','NONEM','ASSAD','DONGI','OKENA','DWI','LALIT','XIVIL'],
+  source:'SOURCE-VERIFIED UPS9 ZGSZ-VOBL OFP',
+  crossings:{
+   CHINA:{entry:'SIKOU',exit:'NONEM'},
+   VIETNAM:{entry:'ASSAD',exit:'DONGI'},
+   THAILAND:{entry:'OKENA',exit:'DWI'},
+   MYANMAR:{entry:'DWI',exit:'LALIT'},
+   INDIA:{entry:'XIVIL',exit:'VOBL'}
+  }
+ },
+ {id:'UPS15_ZGSZ_VIDP',origin:'ZGSZ',destination:'VIDP',
+  routeIncludes:['MEPAN','GENGMA','LINSO','LSO','ANSOS','TEBUL','BOGEP','RAJ','LKN','JAL','VIDP'],
+  source:'SOURCE-VERIFIED UPS15 ZGSZ-VIDP OFP',
+  crossings:{
+   CHINA:{entry:'MEPAN',exit:'GENGMA'},
+   MYANMAR:{entry:'LINSO',exit:'LSO'},
+   BANGLADESH:{entry:'BOGEP',exit:'RAJ'},
+   INDIA:{entry:'LKN',exit:'JAL'}
+  }
+ },
+ {id:'UPS1938_PHNL_VHHH',origin:'PHNL',destination:'VHHH',
+  routeIncludes:['TUNTO','IGURU','PICHU','HCN','ELATO','VHHH'],
+  source:'SOURCE-VERIFIED UPS1938 PHNL-VHHH OFP',
+  crossings:{TAIWAN:{entry:'TUNTO',exit:'ELATO'}}
+ },
+ {id:'UPS61_RCTP_PANC',origin:'RCTP',destination:'PANC',
+  routeIncludes:['MOLKA','LIGNI'],
+  source:'SOURCE-VERIFIED UPS61 RCTP-PANC OFP',
+  crossings:{TAIWAN:{entry:'RCTP',exit:'MOLKA'}}
+ },
  {id:'UPS29_VOBL_EDDK',origin:'VOBL',destination:'EDDK',
   routeIncludes:['VAGPU','AGELA','PARAR','TULBU','TOKRA','PASUM','TANSA'],
   source:'SOURCE-VERIFIED UPS29 OFP',
@@ -360,12 +414,24 @@ function crossingPatternFor(country,p){
  )||null;
 }
 
+function crossingPatternsFor(country,p){
+ const r=routeTokens(p), origin=String(p.origin||'').toUpperCase(), destination=String(p.destination||'').toUpperCase();
+ return CROSSING_PATTERNS.filter(pattern=>
+   (!pattern.origin||pattern.origin===origin) &&
+   (!pattern.destination||pattern.destination===destination) &&
+   routeContainsInOrder(r,pattern.routeIncludes) &&
+   pattern.crossings?.[country]
+ );
+}
+
 function crossingFor(country,p){
  const pattern=crossingPatternFor(country,p);
  if(pattern){
   const c=pattern.crossings[country], t=pattern.eet?.[country]||{};
-  const entryClock=t.entry==='EOBT'?{time:p.eobt||'REVIEW',date:p.date,valid:true}:eetClock(p.eobt,t.entry,p.date);
-  const exitClock=t.exit==='EOBT'?{time:p.eobt||'REVIEW',date:p.date,valid:true}:eetClock(p.eobt,t.exit,p.date);
+  const entryClock=t.entry==='EOBT'?{time:p.eobt||'REVIEW',date:p.date,valid:true}:
+    t.entry?eetClock(p.eobt,t.entry,p.date):{time:'REVIEW',date:p.date,valid:false};
+  const exitClock=t.exit==='EOBT'?{time:p.eobt||'REVIEW',date:p.date,valid:true}:
+    t.exit?eetClock(p.eobt,t.exit,p.date):{time:'REVIEW',date:p.date,valid:false};
   return {
    entry:c.entry,exit:c.exit,
    entryTime:entryClock.time,exitTime:exitClock.time,
