@@ -486,7 +486,7 @@ function emailFor(country,p){
  const boundaryLine=country===originCountry
    ? 'EXIT POINT  '+x.exit+'  AT  '+x.exitTime
    : 'ENTRY POINT  '+x.entry+'  AT  '+x.entryTime+' EXIT POINT  '+x.exit+'  AT  '+x.exitTime;
- return 'Subject: FLIGHT PERMIT REQUEST – UPS '+num+' – '+date+'\\n\\nHello,\\n\\nPlease arrange the required flight permit for the following:\\n\\nUPS '+num+'  '+dep+'  '+(p.eobt||'REVIEW')+' DAY '+(depDay||'REVIEW')+'  '+dst+'  '+arr.time+' DAY '+(arrDay||'REVIEW')+'  '+date+'  '+(p.aircraft||'[ACFT]')+'\\n\\n'+boundaryLine+'\\n\\nAIRWAY '+airways+' FLIGHT LEVEL '+fl+'\\n\\nPlease advise permit number when available.\\n\\nThank you,\\n\\nUPS FLIGHT CONTROL';
+ return 'Subject: FLIGHT PERMIT REQUEST – UPS '+num+' – '+date+'\n\nHello,\n\nPlease arrange the required flight permit for the following:\n\nUPS '+num+'  '+dep+'  '+(p.eobt||'REVIEW')+' DAY '+(depDay||'REVIEW')+'  '+dst+'  '+arr.time+' DAY '+(arrDay||'REVIEW')+'  '+date+'  '+(p.aircraft||'[ACFT]')+'\n\n'+boundaryLine+'\n\nAIRWAY '+airways+' FLIGHT LEVEL '+fl+'\n\nPlease advise permit number when available.\n\nThank you,\n\nUPS FLIGHT CONTROL';
 }
 function permitValidityStatus(country,issuedAt,revisedEobt){
  const r=RULES[country]||{};
