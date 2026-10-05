@@ -44,6 +44,38 @@ textarea,input{width:100%;background:#09111e;color:#eaf1ff;border:1px solid #2b3
 </section>
 </main>
 
+<script>
+/* Parser fallback: keeps the browser app functional even if GitHub Pages serves
+   fpl-parser.js late/stale/404. The external parser remains the primary source. */
+if(typeof parseCoreFpl!=='function'){
+ function parseCoreFpl(raw){
+  const s=String(raw||'').replace(/\\s+/g,' ').trim();
+  const callsign=(s.match(/\\(FPL-([A-Z0-9/]+)-/i)||[])[1]||'');
+  const origin=(s.match(/-([A-Z]{4})(\\d{4})(?:\\s|$)/i)||[])[1]||'';
+  const eobt=(s.match(/-([A-Z]{4})(\\d{4})(?:\\s|$)/i)||[])[2]||'';
+  const routeStart=s.match(/-([A-Z]\\d{3,4}F\\d{3,4})\\s/i);
+  const destination=(s.match(/\\s-([A-Z]{4})(\\d{4})(?:\\s|$)/i)||[])[1]||'';
+  const eetTotal=(s.match(/\\s-([A-Z]{4})(\\d{4})(?:\\s|$)/i)||[])[2]||'';
+  if(!callsign||!origin||!eobt||!routeStart||!destination) return {valid:false};
+  const date=(s.match(/DOF\\/(\\d{6})/i)||[])[1]||'';
+  const reg=(s.match(/REG\\/([A-Z0-9-]+)/i)||[])[1]||'';
+  const sp=routeStart[1];
+  const speed=sp.match(/^([A-Z]\\d{3,4})/i)?.[1]||'';
+  const level=sp.match(/F\\d{3,4}$/i)?.[0]||'';
+  return {valid:true,callsign,origin,eobt,speed,level,destination,eetTotal,eta:eetTotal,date,reg};
+ }
+ function parseEetAnchors(eet){
+  return String(eet||'').split(/\\s+/).map(x=>{const m=x.match(/^([A-Z0-9]{3,5})(\\d{4})$/);return m?{fir:m[1],time:m[2]}:null}).filter(Boolean);
+ }
+ function interpolateEetTime(anchorA,anchorB,fraction){
+  if(!anchorA||!anchorB)return 'REVIEW';
+  const toMin=t=>parseInt(t.slice(0,2),10)*60+parseInt(t.slice(2),10);
+  const a=toMin(anchorA.time),b=toMin(anchorB.time);let delta=b-a;if(delta<0)delta+=1440;
+  const total=(a+delta*Math.max(0,Math.min(1,Number(fraction)||0)))%1440;
+  return String(Math.floor(total/60)).padStart(2,'0')+String(Math.round(total%60)).padStart(2,'0');
+ }
+}
+</script>
 <script src="fpl-parser.js"></script>
 <script>
 /*
@@ -545,7 +577,16 @@ function render(){
 }
 window.showEmail=function(c){const p=window.currentParsed;if(c===destinationCountry(String(p.origin||'').toUpperCase()))return;byId('email').textContent=emailFor(c,p);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
 window.showLandingEmail=function(c){byId('email').textContent=landingEmailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
-byId('check').onclick=render;
+byId('check').onclick=function(){
+ try{render();}
+ catch(e){
+  console.error(e);
+  byId('results').classList.remove('hidden');
+  byId('emailCard').classList.add('hidden');
+  byId('tbody').innerHTML='<tr><td colspan="9"><strong>FLIGHT PLAN PARSE ERROR</strong><br><span class="source">'+String(e&&e.message||e).replace(/[<>&]/g,m=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[m]))+'</span><br><br>Please verify that the pasted text contains the complete ICAO FPL beginning with <code>(FPL-</code>.</td></tr>';
+  byId('route').textContent='Parser error — no permit decision was generated.';
+ }
+};
 byId('sample').onclick=function(){byId('fpl').value=SAMPLE;render()};
 byId('clear').onclick=function(){byId('fpl').value='';byId('results').classList.add('hidden');byId('emailCard').classList.add('hidden')};
 byId('copy').onclick=async function(){try{await navigator.clipboard.writeText(byId('email').textContent);byId('copy').textContent='COPIED';setTimeout(()=>byId('copy').textContent='COPY EMAIL',1200)}catch(e){alert('Copy is blocked by this browser. Select the email text and copy manually.')}};
