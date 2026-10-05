@@ -670,8 +670,11 @@ function crossingFor(country,p){
  }
 
  if(country===destinationCountryName){
-  const firstFix=auto?.entry||pattern?.crossings?.[country]?.entry||'REVIEW';
-  const firstEet=auto?.entryEet||pattern?.eet?.[country]?.entry||null;
+  // Arrival side: use the literal first fix listed inside the arriving country's
+  // FIR section. Do not substitute the FIR EET anchor/boundary entry when LIDO
+  // prints that anchor before the FIR header.
+  const firstFix=auto?.firstFix||pattern?.crossings?.[country]?.entry||'REVIEW';
+  const firstEet=auto?.firstFixEet||pattern?.eet?.[country]?.entry||null;
   return {
    entry:firstFix,
    exit:destinationIcao,
