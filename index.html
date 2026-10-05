@@ -217,13 +217,15 @@ const CROSSING_PATTERNS=[
   }
  },
  {id:'UPS20_EDDK_VIDP',origin:'EDDK',destination:'VIDP',
-  routeIncludes:['REBLO','TABAS','MATAL','SUBUT','EDELU','ERLEV','RODAR'],
+  routeIncludes:['REBLO','TABAS','MATAL','SUBUT','EDELU','ERLEV','RODAR','BABUM','POGON'],
   source:'SOURCE-VERIFIED UPS20 OFP',
   crossings:{
-   AZERBAIJAN:{entry:'MATAL',exit:'RODAR'}
+   AZERBAIJAN:{entry:'MATAL',exit:'RODAR'},
+   TURKMENISTAN:{entry:'RODAR',exit:'RINIB'}
   },
   eet:{
-   AZERBAIJAN:{entry:'0341',exit:'0411'}
+   AZERBAIJAN:{entry:'0341',exit:'0411'},
+   TURKMENISTAN:{entry:'0411',exit:'0454'}
   }
  },
  {id:'UPS1_VOBL_EDDK',origin:'VOBL',destination:'EDDK',
