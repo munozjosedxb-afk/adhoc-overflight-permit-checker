@@ -634,8 +634,28 @@ function render(){
  byId('route').textContent=(p.route||'No route parsed')+(window.routeWarning?'\n\n⚠ '+window.routeWarning:''); byId('fplMeta').innerHTML=[['EOBT',p.eobt||'REVIEW'],['EET',p.eetTotal||'REVIEW'],['FL',p.level||'REVIEW'],['DOF',p.date||'REVIEW'],['REG',p.reg||'REVIEW']].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
  byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...overflightRule(c,p),status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':overflightRule(c,p).status},x=permitBlock(c,p),l=landingBlock(c,p);return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(l.status==='YES'?'yes':l.status==='REVIEW'?'review':'na')+'">'+l.status+'</span><br><span class="source">'+(l.airport?l.operation+' '+l.airport:l.reason)+'</span></td><td>'+r.validity+'</td><td>'+((r.handler||'—')+'<br><span class="source">'+(r.action||'')+'</span>')+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.entryTime+' / '+x.exitTime+' • '+x.confidence+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td>'+((r.status==='YES'||r.status==='CONDITIONAL')?'<button class="btn small" onclick="showEmail(\''+c+'\')">OVF EMAIL</button>':'—')+' '+(l.status==='YES'?'<button class="btn small" onclick="showLandingEmail(\''+c+'\')">T/L EMAIL</button>':'')+'</td></tr>'}).join(''):'<tr><td colspan="9">No Asia country match detected. Manual route review still recommended.</td></tr>';
 }
-window.showEmail=function(c){const p=window.currentParsed;if(c===destinationCountry(String(p.origin||'').toUpperCase()))return;byId('email').textContent=emailFor(c,p);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
-window.showLandingEmail=function(c){byId('email').textContent=landingEmailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
+function currentParsedFpl(){
+ const p=parseFpl(byId('fpl').value);
+ if(!p.valid||!p.origin||!p.destination){
+  alert('Please paste a valid ICAO flight plan and run CHECK FLIGHT PLAN first.');
+  return null;
+ }
+ window.currentParsed=p;
+ return p;
+}
+window.showEmail=function(c){
+ const p=currentParsedFpl(); if(!p)return;
+ if(c===destinationCountry(String(p.origin||'').toUpperCase()))return;
+ byId('email').textContent=emailFor(c,p);
+ byId('emailCard').classList.remove('hidden');
+ byId('emailCard').scrollIntoView({behavior:'smooth'});
+}
+window.showLandingEmail=function(c){
+ const p=currentParsedFpl(); if(!p)return;
+ byId('email').textContent=landingEmailFor(c,p);
+ byId('emailCard').classList.remove('hidden');
+ byId('emailCard').scrollIntoView({behavior:'smooth'});
+}
 byId('check').onclick=function(){
  try{render();}
  catch(e){
@@ -647,7 +667,11 @@ byId('check').onclick=function(){
  }
 };
 byId('sample').onclick=function(){byId('fpl').value=SAMPLE;render()};
-byId('clear').onclick=function(){byId('fpl').value='';byId('results').classList.add('hidden');byId('emailCard').classList.add('hidden')};
+byId('fpl').addEventListener('input',function(){
+ byId('emailCard').classList.add('hidden');
+ byId('email').textContent='';
+});
+byId('clear').onclick=function(){byId('fpl').value='';byId('results').classList.add('hidden');byId('emailCard').classList.add('hidden');byId('email').textContent='';};
 byId('copy').onclick=async function(){try{await navigator.clipboard.writeText(byId('email').textContent);byId('copy').textContent='COPIED';setTimeout(()=>byId('copy').textContent='COPY EMAIL',1200)}catch(e){alert('Copy is blocked by this browser. Select the email text and copy manually.')}};
 
 </script>
