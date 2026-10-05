@@ -417,7 +417,7 @@ const CROSSING_PATTERNS=[
   source:'SOURCE-VERIFIED UPS9 ZGSZ-VOBL OFP',
   crossings:{
    HONG_KONG:{entry:'SIERA',exit:'SIKOU'},
-   CHINA:{entry:'SIKOU',exit:'NONEM'},
+   CHINA:{entry:'SIKOU',exit:'ASSAD'},
    VIETNAM:{entry:'ASSAD',exit:'VILAO'},
    LAOS:{entry:'VILAO',exit:'SAVANNAKHET'},
    THAILAND:{entry:'SAVANNAKHET',exit:'TANEK'},
@@ -658,6 +658,18 @@ function crossingFor(country,p){
  }
 
  if(country===originCountry){
+  // Some routes depart and re-enter the same country after transiting a
+  // neighboring FIR. For UPS9, China is one permit span (ZGSZ→ASSAD),
+  // with Hong Kong FIR interrupting Chinese airspace (SIERA→SIKOU).
+  if(country==='CHINA' && originIcao==='ZGSZ' && destinationIcao==='VOBL' && pattern){
+   return {
+    entry:originIcao,
+    exit:'ASSAD',
+    entryTime:p.eobt||'—',
+    exitTime:pattern.eet?.VIETNAM?.entry?eetClock(p.eobt,pattern.eet.VIETNAM.entry,p.date).time:'REVIEW',
+    confidence:'China permit span ZGSZ → ASSAD • Hong Kong FIR interruption SIERA → SIKOU'
+   };
+  }
   const sequence=countryList(p);
   const idx=sequence.indexOf(country);
   const nextCountry=idx>=0?sequence[idx+1]:null;
