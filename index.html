@@ -624,40 +624,87 @@ function ofpFirBoundaryFor(country,p){
  }
 }
 function crossingFor(country,p){
- // The departure country is not an overflight-permit entry point.
- // A flight originating in the country starts inside that country's airspace, so
- // never show a fabricated/REVIEW entry fix and never generate an OVF request for it.
- const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
+ const originIcao=String(p.origin||'').toUpperCase();
+ const destinationIcao=String(p.destination||'').toUpperCase();
+ const originCountry=destinationCountry(originIcao);
+ const destinationCountryName=destinationCountry(destinationIcao);
  const pattern=crossingPatternFor(country,p);
- if(country===originCountry){
-  if(pattern){
-   const c=pattern.crossings[country],t=pattern.eet?.[country]||{};
-   const xc=t.exit?eetClock(p.eobt,t.exit,p.date):{time:'REVIEW'};
-   return {entry:'—',exit:c.exit,entryTime:p.eobt||'—',exitTime:xc.time,confidence:'Origin country • no OVF entry'};
-  }
-  return {entry:'—',exit:'—',entryTime:p.eobt||'—',exitTime:'—',confidence:'Origin country • no OVF entry'};
+ const auto=ofpFirBoundaryFor(country,p);
+
+ /*
+  FAIL-SAFE FOR LANDING / DEPARTING COUNTRIES:
+  The country crossing object is also used by landing/takeoff permit logic.
+  Therefore, when the country is the departure country, explicitly show:
+      DEPARTURE AIRPORT -> FIRST FIX IN THE COUNTRY FIR
+  and when it is the destination country, explicitly show:
+      LAST FIX IN THE COUNTRY FIR -> ARRIVAL AIRPORT
+  This is intentionally independent of permit status. It prevents the app from
+  treating a landing/takeoff country like a generic transit country.
+ */
+ if(country===originCountry && country===destinationCountryName){
+  const firstFix=auto?.firstFix||pattern?.crossings?.[country]?.entry||'REVIEW';
+  const lastFix=auto?.lastFix||pattern?.crossings?.[country]?.exit||'REVIEW';
+  const firstEet=auto?.firstFixEet?eetClock(p.eobt,auto.firstFixEet,p.date).time:(p.eobt||'REVIEW');
+  const lastEet=auto?.lastFixEet?eetClock(p.eobt,auto.lastFixEet,p.date).time:'REVIEW';
+  return {
+   entry:originIcao,
+   exit:destinationIcao,
+   entryTime:p.eobt||'—',
+   exitTime:lastEet,
+   confidence:'Same-country flight • airport to airport'
+  };
  }
- // Permit validity/action is evaluated once at COUNTRY level. FIR boundaries are never
- // treated as separate permit events. A country may contain several FIRs or the route
- // may re-enter the same FIR; all of those segments belong to the same country permit.
- // Verified route patterns supply named country entry/exit fixes. Otherwise the resolver
- // uses the first and last EET anchors belonging to ANY FIR in that country and keeps
- // boundary fixes REVIEW rather than inventing them.
+
+ if(country===originCountry){
+  const firstFix=auto?.firstFix||pattern?.crossings?.[country]?.entry||'REVIEW';
+  const firstEet=auto?.firstFixEet?eetClock(p.eobt,auto.firstFixEet,p.date).time:'REVIEW';
+  return {
+   entry:originIcao,
+   exit:firstFix,
+   entryTime:p.eobt||'—',
+   exitTime:firstEet,
+   confidence:auto
+    ? 'Departure airport → first OFP fix • '+auto.firs.join(' → ')
+    : pattern
+      ? 'Departure airport → first verified country fix'
+      : 'Departure airport → first FIR fix • REVIEW'
+  };
+ }
+
+ if(country===destinationCountryName){
+  const lastFix=auto?.lastFix||pattern?.crossings?.[country]?.exit||'REVIEW';
+  const lastEet=auto?.lastFixEet?eetClock(p.eobt,auto.lastFixEet,p.date).time:'REVIEW';
+  const arrivalEet=auto?.lastFixEet
+    ? eetClock(p.eobt,auto.lastFixEet,p.date)
+    : {time:'REVIEW'};
+  return {
+   entry:lastFix,
+   exit:destinationIcao,
+   entryTime:lastEet,
+   exitTime:'REVIEW',
+   confidence:auto
+    ? 'Last OFP fix → arrival airport • '+auto.firs.join(' → ')
+    : pattern
+      ? 'Last verified country fix → arrival airport'
+      : 'Last FIR fix → arrival airport • REVIEW'
+  };
+ }
+
+ // Transit/overflight country. Permit status is evaluated separately from
+ // geographic boundary detection. A country may contain multiple FIRs.
  if(pattern){
   const c=pattern.crossings[country],t=pattern.eet?.[country]||{};
   const ec=t.entry==='EOBT'?{time:p.eobt||'REVIEW'}:t.entry?eetClock(p.eobt,t.entry,p.date):{time:'REVIEW'};
   const xc=t.exit==='EOBT'?{time:p.eobt||'REVIEW'}:t.exit?eetClock(p.eobt,t.exit,p.date):{time:'REVIEW'};
   return {entry:c.entry,exit:c.exit,entryTime:ec.time,exitTime:xc.time,confidence:pattern.source};
  }
- const auto=ofpFirBoundaryFor(country,p);
  if(auto){
   const entryTime=auto.entryEet?eetClock(p.eobt,auto.entryEet,p.date).time:'REVIEW';
   const exitTime=auto.exitEet?eetClock(p.eobt,auto.exitEet,p.date).time:'REVIEW';
-  const originIsCountry=country===originCountry;
   return {
-   entry:originIsCountry?'—':auto.entry,
+   entry:auto.entry,
    exit:auto.exit,
-   entryTime:originIsCountry?(p.eobt||'—'):entryTime,
+   entryTime,
    exitTime,
    confidence:'OFP country FIR sections • '+auto.firs.join(' → ')
   };
@@ -669,7 +716,7 @@ function crossingFor(country,p){
  const entryTime=first.i?eetClock(p.eobt,anchors[first.i-1].time,p.date).time:'REVIEW';
  const exitTime=eetClock(p.eobt,last.x.time,p.date).time;
  return {entry:'REVIEW',exit:'REVIEW',entryTime,exitTime,confidence:'Country-level timing • all FIRs combined'};
- }
+}
 function permitBlock(country,p){return crossingFor(country,p)}
 
 /*
