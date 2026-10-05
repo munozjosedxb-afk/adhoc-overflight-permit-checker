@@ -21,7 +21,7 @@ textarea,input{width:100%;background:#09111e;color:#eaf1ff;border:1px solid #2b3
 </head>
 <body>
 <main>
-<div class="header"><div><div class="title">✈️ AD HOC Overflight Permit Checker</div><div class="sub">Asia edition • paste a complete ICAO flight plan and screen the route by COUNTRY for permit/clearance requirements.</div></div><div class="badge">V2 • ASIA DATABASE</div></div>
+<div class="header"><div><div class="title">✈️ AD HOC Overflight Permit Checker</div><div class="sub">Asia edition • paste a complete ICAO flight plan and screen the route by COUNTRY for permit/clearance requirements.</div></div><div class="badge">V2.1 • ASIA DATABASE</div></div>
 
 <section class="card">
 <label for="fpl">ICAO FLIGHT PLAN</label>
@@ -533,6 +533,7 @@ function anchorClockMap(p){
  return out;
 }
 function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+' '+['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][Number(d.slice(2,4))-1]+' 20'+d.slice(0,2):'[DATE]'}
+/* Origin-country permit emails intentionally contain NO ENTRY POINT. */
 function emailFor(country,p){
  const x=permitBlock(country,p),arr=addEet(p.eobt,p.eetTotal,p.date),depDay=weekdayNum(p.date),arrDay=weekdayNum(arr.date);
  const airways=[...new Set((p.route||'').match(/\b[A-Z]\d{1,4}\b/g)||[])].join(' ')||'REVIEW';
@@ -631,3 +632,8 @@ byId('copy').onclick=async function(){try{await navigator.clipboard.writeText(by
 </script>
 </body>
 </html>
+
+
+
+
+
