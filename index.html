@@ -462,7 +462,14 @@ const CROSSING_PATTERNS=[
  }
 ];
 
-function routeTokens(p){return (p.route||'').toUpperCase().split(/\s+/).filter(Boolean)}
+function routeTokens(p){
+  return (p.route||'')
+    .toUpperCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(token => token.split('/')[0])
+    .filter(Boolean);
+}
 
 function routeContainsInOrder(route,required){
  let i=0;
