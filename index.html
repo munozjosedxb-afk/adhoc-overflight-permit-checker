@@ -246,11 +246,11 @@ function crossingFor(country,p){
  const pattern=crossingPatternFor(country,p);
  if(pattern){
   const c=pattern.crossings[country], t=pattern.eet?.[country]||{};
-  const entryClock=addEet(p.eobt,t.entry,p.date).time;
-  const exitClock=addEet(p.eobt,t.exit,p.date).time;
+  const entryClock=eetClock(p.eobt,t.entry,p.date);
+  const exitClock=eetClock(p.eobt,t.exit,p.date);
   return {
    entry:c.entry,exit:c.exit,
-   entryTime:entryClock,exitTime:exitClock,
+   entryTime:entryClock.time,exitTime:exitClock.time,
    confidence:pattern.source
   };
  }
@@ -259,10 +259,12 @@ function crossingFor(country,p){
  const hits=anchors.map((a,i)=>({a,i})).filter(x=>firs.includes(x.a.fir));
  if(hits.length){
   const first=hits[0], last=hits[hits.length-1], prev=anchors[first.i-1];
+  const entryClock=prev?eetClock(p.eobt,prev.time,p.date):null;
+  const exitClock=eetClock(p.eobt,last.a.time,p.date);
   return {
    entry:'REVIEW',exit:'REVIEW',
-   entryTime:addEet(p.eobt,prev?.time||'',p.date).time,
-   exitTime:addEet(p.eobt,last.a.time,p.date).time,
+   entryTime:entryClock?.time||'REVIEW',
+   exitTime:exitClock.time,
    confidence:'EET-VERIFIED FIR boundary timing; named crossing fix not explicitly filed'
   };
  }
@@ -274,12 +276,18 @@ function weekdayNum(dateStr){
  const d=new Date(Date.UTC(2000+Number(dateStr.slice(0,2)),Number(dateStr.slice(2,4))-1,Number(dateStr.slice(4,6))));
  return d.getUTCDay()===0?7:d.getUTCDay();
 }
-function addEet(eobt,eet,dateStr){
- if(!/^\d{4}$/.test(eobt)||!/^\d{4}$/.test(eet)||!/^\d{6}$/.test(dateStr)) return {time:'REVIEW',date:dateStr};
+function eetClock(eobt,eet,dateStr){
+ if(!/^\d{4}$/.test(eobt)||!/^\d{4}$/.test(eet)||!/^\d{6}$/.test(dateStr)) return {time:'REVIEW',date:dateStr,valid:false};
  const d=new Date(Date.UTC(2000+Number(dateStr.slice(0,2)),Number(dateStr.slice(2,4))-1,Number(dateStr.slice(4,6)),Number(eobt.slice(0,2)),Number(eobt.slice(2)));
  d.setUTCMinutes(d.getUTCMinutes()+Number(eet.slice(0,2))*60+Number(eet.slice(2)));
  const yy=String(d.getUTCFullYear()).slice(2),mm=String(d.getUTCMonth()+1).padStart(2,'0'),dd=String(d.getUTCDate()).padStart(2,'0');
- return {time:String(d.getUTCHours()).padStart(2,'0')+String(d.getUTCMinutes()).padStart(2,'0'),date:yy+mm+dd};
+ return {time:String(d.getUTCHours()).padStart(2,'0')+String(d.getUTCMinutes()).padStart(2,'0'),date:yy+mm+dd,valid:true};
+}
+function addEet(eobt,eet,dateStr){return eetClock(eobt,eet,dateStr)}
+function anchorClockMap(p){
+ const out={};
+ for(const a of parseEetAnchors(p.eet||'')) out[a.fir]={fir:a.fir,eet:a.time,...eetClock(p.eobt,a.time,p.date)};
+ return out;
 }
 function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+' '+['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][Number(d.slice(2,4))-1]+' 20'+d.slice(0,2):'[DATE]'}
 function emailFor(country,p){
