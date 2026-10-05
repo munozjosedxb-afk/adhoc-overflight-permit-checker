@@ -426,7 +426,19 @@ const CROSSING_PATTERNS=[
   source:'SOURCE-VERIFIED UPS1938 PHNL-VHHH OFP',
   crossings:{TAIWAN:{entry:'TUNTO',exit:'ELATO'}}
  },
- {id:'UPS61_RCTP_PANC',origin:'RCTP',destination:'PANC',
+  {id:'UPS60_VVNB_VHHH',origin:'VVNB',destination:'VHHH',
+  routeIncludes:['BUNTA','LENKO','IKELA','IDOSI','MYWAY','GAMBA','MAPLE','COMBI','ROCCA','CANTO'],
+  source:'SOURCE-VERIFIED UPS60 VVNB-VHHH OFP',
+  crossings:{
+   CHINA:{entry:'BUNTA',exit:'LENKO'},
+   HONG_KONG:{entry:'IKELA',exit:'VHHH'}
+  },
+  eet:{
+   CHINA:{entry:'0056',exit:'0104'},
+   HONG_KONG:{entry:'0121',exit:'0203'}
+  }
+ },
+{id:'UPS61_RCTP_PANC',origin:'RCTP',destination:'PANC',
   routeIncludes:['MOLKA','LIGNI'],
   source:'SOURCE-VERIFIED UPS61 RCTP-PANC OFP',
   crossings:{TAIWAN:{entry:'RCTP',exit:'MOLKA'}},
