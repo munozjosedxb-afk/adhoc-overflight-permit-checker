@@ -34,7 +34,7 @@ textarea,input{width:100%;background:#09111e;color:#eaf1ff;border:1px solid #2b3
 <div class="summary" id="metrics"></div>
 <div style="margin-top:14px"><div style="font-size:12px;color:var(--muted);margin-bottom:6px">ROUTE</div><div class="route" id="route"></div></div><div class="summary" id="fplMeta" style="margin-top:10px"></div>
 <div style="margin-top:18px;overflow:auto"><table><thead><tr><th>Country</th><th>Overflight</th><th>Landing / Takeoff</th><th>OVF Validity</th><th>Handler / action</th><th>Entry / exit</th><th>Operational note</th><th>Source status</th><th></th></tr></thead><tbody id="tbody"></tbody></table></div>
-<div class="notice">OVERFLIGHT and LANDING are separate permit checks. YES means the permit request can be generated. REVIEW means the requirement or validity still needs operational verification; the tool will not invent a permit validity period.</div>
+<div class="notice"><strong>COUNTRY-LEVEL PERMIT LOGIC:</strong> FIRs are used only to identify which countries the route crosses. Multiple FIRs, FIR re-entries, or several FIRs inside the same country produce <strong>one country permit decision and one country permit request</strong>. OVERFLIGHT and LANDING are separate permit checks. REVIEW means the requirement or validity still needs operational verification; the tool will not invent a permit validity period.</div>
 </section>
 
 <section class="card hidden" id="emailCard">
@@ -450,7 +450,7 @@ function crossingFor(country,p){
  const first=hits[0],last=hits[hits.length-1];
  const entryTime=first.i?eetClock(p.eobt,anchors[first.i-1].time,p.date).time:'REVIEW';
  const exitTime=eetClock(p.eobt,last.x.time,p.date).time;
- return {entry:'REVIEW',exit:'REVIEW',entryTime,exitTime,confidence:'Country-level timing • multiple route segments aggregated'};
+ return {entry:'REVIEW',exit:'REVIEW',entryTime,exitTime,confidence:'Country-level timing • all FIRs combined'};
  }
 function permitBlock(country,p){return crossingFor(country,p)}
 function weekdayNum(dateStr){
