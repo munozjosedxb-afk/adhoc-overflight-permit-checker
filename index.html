@@ -261,7 +261,8 @@ function crossingFor(country,p){
   const first=hits[0], last=hits[hits.length-1], prev=anchors[first.i-1];
   return {
    entry:'REVIEW',exit:'REVIEW',
-   entryTime:prev?.time||'REVIEW',exitTime:last.a.time,
+   entryTime:addEet(p.eobt,prev?.time||'',p.date).time,
+   exitTime:addEet(p.eobt,last.a.time,p.date).time,
    confidence:'EET-VERIFIED FIR boundary timing; named crossing fix not explicitly filed'
   };
  }
