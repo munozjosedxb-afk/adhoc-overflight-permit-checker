@@ -215,7 +215,7 @@ const CROSSING_PATTERNS=[
    SAUDI_ARABIA:{entry:'DEBAV',exit:'PASUM'},
    EGYPT:{entry:'PASUM',exit:'TANSA'}
   },
-  times:{
+  eet:{
    INDIA:{entry:'0036',exit:'0208'},
    OMAN:{entry:'0208',exit:'0301'},
    SAUDI_ARABIA:{entry:'0301',exit:'0534'},
@@ -226,12 +226,18 @@ const CROSSING_PATTERNS=[
 
 function routeTokens(p){return (p.route||'').toUpperCase().split(/\s+/).filter(Boolean)}
 
+function routeContainsInOrder(route,required){
+ let i=0;
+ for(const token of route){if(token===required[i]){i++;if(i===required.length)return true;}}
+ return false;
+}
+
 function crossingPatternFor(country,p){
  const r=routeTokens(p), origin=String(p.origin||'').toUpperCase(), destination=String(p.destination||'').toUpperCase();
  return CROSSING_PATTERNS.find(pattern=>
    (!pattern.origin||pattern.origin===origin) &&
    (!pattern.destination||pattern.destination===destination) &&
-   pattern.routeIncludes.every(token=>r.includes(token)) &&
+   routeContainsInOrder(r,pattern.routeIncludes) &&
    pattern.crossings?.[country]
  )||null;
 }
@@ -239,10 +245,12 @@ function crossingPatternFor(country,p){
 function crossingFor(country,p){
  const pattern=crossingPatternFor(country,p);
  if(pattern){
-  const c=pattern.crossings[country], t=pattern.times?.[country]||{};
+  const c=pattern.crossings[country], t=pattern.eet?.[country]||{};
+  const entryClock=addEet(p.eobt,t.entry,p.date).time;
+  const exitClock=addEet(p.eobt,t.exit,p.date).time;
   return {
    entry:c.entry,exit:c.exit,
-   entryTime:t.entry||'REVIEW',exitTime:t.exit||'REVIEW',
+   entryTime:entryClock,exitTime:exitClock,
    confidence:pattern.source
   };
  }
