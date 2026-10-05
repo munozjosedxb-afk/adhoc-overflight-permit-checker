@@ -26,7 +26,7 @@ textarea,input{width:100%;background:#09111e;color:#eaf1ff;border:1px solid #2b3
 <section class="card">
 <label for="fpl">ICAO FLIGHT PLAN</label>
 <textarea id="fpl" placeholder="Paste the complete ICAO FPL here..."></textarea>
-<div class="controls"><button class="btn primary" id="check">CHECK FLIGHT PLAN</button><button class="btn" id="sample">LOAD UPS11 TEST</button><button class="btn" id="clear">CLEAR</button></div>
+<div class="controls"><button class="btn primary" id="check">CHECK FLIGHT PLAN</button><button class="btn" id="clear">CLEAR</button></div>
 <div class="hint">Ad Hoc decision support. REVIEW means the current country rule still requires operational verification from the applicable AIP/AIC/CAA.</div>
 </section>
 
@@ -185,15 +185,6 @@ const RULES={
  CUBA:{name:"Cuba",firs:["MUHA"],status:"NO",validity:"Monthly permit; no new/rescheduled/rerouted request",entryExit:false,note:"UPS operational permit playbook states Cuba permits are obtained monthly and no new request is needed for new, rescheduled or rerouted scheduled UPS flights.",source:"UPS operational permit playbook"}
 
 };
-
-const SAMPLE=`(FPL-UPS11-IS
--B748/H-SADE3FGHIJ1J2J4J5M1P2RWXYZ/LB1D1
--RKSI0225
--N0506F320 BOPTA2Y BOPTA Z51 BEDES Y711 PONIK A593 LAMEN/K0941S0980 A593 PK R343 MADUK W51 LEGIV W164 ADGOL W50 XSH W80 IDGAG A581 QNX W136 XISLI A581 SGM A599 LINSO/M084F340 A201 PPT Q18 BODOG A201 LKN R594 JAL
--VIDP0643 VOHS
--PBN/A1B1C1D1L1O1S2 NAV/RNP2 DAT/1FANSER2PDC SUR/260B RSP180 CANMANDATE A2 DOF/260929 REG/N615UP OPR/UPS PER/D
-EET/ZSHA0058 ZHWH0155 ZGZU0225 ZPKM0242 VYYF0400 VECF0437 VGFR0445 VECF0446 VGFR0452 VIDF0604
-)`;
 
 function byId(id){return document.getElementById(id)}
 function parseFpl(raw){
@@ -666,7 +657,6 @@ byId('check').onclick=function(){
   byId('route').textContent='Parser error — no permit decision was generated.';
  }
 };
-byId('sample').onclick=function(){byId('fpl').value=SAMPLE;render()};
 byId('fpl').addEventListener('input',function(){
  byId('emailCard').classList.add('hidden');
  byId('email').textContent='';
