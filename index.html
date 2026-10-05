@@ -33,7 +33,7 @@ textarea,input{width:100%;background:#09111e;color:#eaf1ff;border:1px solid #2b3
 <section class="card hidden" id="results">
 <div class="summary" id="metrics"></div>
 <div style="margin-top:14px"><div style="font-size:12px;color:var(--muted);margin-bottom:6px">ROUTE</div><div class="route" id="route"></div></div><div class="summary" id="fplMeta" style="margin-top:10px"></div>
-<div style="margin-top:18px;overflow:auto"><table><thead><tr><th>Country</th><th>Overflight</th><th>Landing</th><th>Validity</th><th>Handler / action</th><th>Entry / exit</th><th>Operational note</th><th>Source status</th><th></th></tr></thead><tbody id="tbody"></tbody></table></div>
+<div style="margin-top:18px;overflow:auto"><table><thead><tr><th>Country</th><th>Overflight</th><th>Landing / Takeoff</th><th>OVF Validity</th><th>Handler / action</th><th>Entry / exit</th><th>Operational note</th><th>Source status</th><th></th></tr></thead><tbody id="tbody"></tbody></table></div>
 <div class="notice">OVERFLIGHT and LANDING are separate permit checks. YES means the permit request can be generated. REVIEW means the requirement or validity still needs operational verification; the tool will not invent a permit validity period.</div>
 </section>
 
@@ -99,7 +99,7 @@ const RULES={
  MACAU:{name:"Macau",firs:["VMMC"],status:"CONDITIONAL",validity:"Per scheduled authorization / traffic rights",entryExit:true,note:"AACM separates scheduled and non-scheduled authority. Its published airspace-use approval language applies to non-scheduled operations, while scheduled services to/from Macao operate under flight authorization and bilateral air-service rights. The previous generic 24-hour validity is not supported for a UPS scheduled transit. For transit-only scheduled overflight, verify that the applicable first-freedom/bilateral authorization covers the operation and use its terms for any schedule change.",source:"Macao AACM scheduled/non-scheduled flight approval framework + Air Rights guidance • current scheduled-airline audit"},
  RUSSIA:{name:"Russia",firs:["UUWV","ULLL","UWWW","USSV","UNNT","UIII","UHWW","UAAA"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Transcontinental Russia is included for Asia route screening; exact permit requirements depend on route, operator status and current Russian AIP/authorization.",source:"Russian AIP/CAA review required"},
  TAJIKISTAN:{name:"Tajikistan",firs:["UTDD"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Tajikistan as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
- THAILAND:{name:"Thailand",firs:["VTBB"],status:"YES",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Thailand as a 24-hour overflight permit for overflight only. BKK takeoff/landing operations are handled separately by UPS. Prime Trip Support handles overflight permit requests.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
+ THAILAND:{name:"Thailand",firs:["VTBB"],status:"YES",landingStatus:"YES",landingNote:"Landing/takeoff permit applies for Thailand; BKK operations handles the landing authorization.",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Thailand as a 24-hour overflight permit for overflight only. BKK takeoff/landing operations are handled separately by UPS. Prime Trip Support handles overflight permit requests.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  TIMOR_LESTE:{name:"Timor-Leste",firs:["WAAF"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
  TURKEY:{name:"Türkiye",firs:["LTAA"],status:"NO",validity:"No Ad Hoc overflight permit; Item 18 statement required",entryExit:false,note:"UPS operational permit playbook lists Turkey among countries that do not require permits, but the flight plan must include a GENERAL CARGO FLIGHT statement in Item 18.",source:"UPS operational permit playbook",handler:"FPL / operational requirement",action:"No overflight permit; add GENERAL CARGO FLIGHT in Item 18"}
  TURKMENISTAN:{name:"Turkmenistan",firs:["UTAA"],status:"YES",validity:"96 hours",entryExit:true,note:"UPS operational permit playbook lists Turkmenistan as a 96-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
@@ -413,6 +413,23 @@ function permitValidityStatus(country,issuedAt,revisedEobt){
 }
 
 function destinationCountry(icao){const m={WSSS:'SINGAPORE',VIDP:'INDIA',VOBL:'INDIA',RPLC:'PHILIPPINES',ZSPD:'CHINA',RKSI:'SOUTH_KOREA',ZGSZ:'CHINA',VVNB:'VIETNAM',VTBS:'THAILAND'};return m[icao]||null;}
+function landingStatus(country,p){
+ const r=RULES[country]||{}, oc=country===destinationCountry(p.origin), dc=country===destinationCountry(p.destination);
+ if(!oc&&!dc) return {status:'NO',reason:'Transit only'};
+ if(r.landingStatus==='YES') return {status:'YES',reason:r.landingNote||'Landing/takeoff permit applies'};
+ if(r.landingStatus==='NO') return {status:'NO',reason:r.landingNote||'No landing/takeoff permit'};
+ return {status:'REVIEW',reason:'Landing/takeoff permit treatment not separately verified'};
+}
+function landingBlock(country,p){
+ const l=landingStatus(country,p), airport=country===destinationCountry(p.destination)?p.destination:country===destinationCountry(p.origin)?p.origin:'';
+ return {...l,airport,operation:airport===p.destination?'LANDING':'TAKEOFF'};
+}
+function landingEmailFor(country,p){
+ const l=landingBlock(country,p),date=fmtDate(p.date),depDay=weekdayNum(p.date),arr=addEet(p.eobt,p.eetTotal,p.date),arrDay=weekdayNum(arr.date),num=p.callsign.replace(/^UPS/i,'');
+ const time=l.operation==='LANDING'?arr.time:(p.eobt||'REVIEW'),day=l.operation==='LANDING'?(arrDay||'REVIEW'):(depDay||'REVIEW');
+ return 'Subject: FLIGHT PERMIT REQUEST – UPS '+num+' – '+date+'\n\nHello,\n\nPlease arrange the required '+l.operation.toLowerCase()+' permit for the following:\n\nUPS '+num+'  '+(p.origin||'[ORIGIN]')+'  '+(p.eobt||'REVIEW')+' DAY '+(depDay||'REVIEW')+'  '+(p.destination||'[DEST]')+'  '+arr.time+' DAY '+(arrDay||'REVIEW')+'  '+date+'  '+(p.aircraft||'[ACFT]')+'\n\n'+(l.operation==='LANDING'?'LANDING AIRPORT':'DEPARTURE AIRPORT')+'  '+(l.airport||'REVIEW')+'  AT  '+time+' UTC DAY '+day+'\n\nFLIGHT LEVEL '+(p.level||'REVIEW')+'\n\nPlease advise permit number when available.\n\nThank you,\n\nUPS FLIGHT CONTROL';
+}
+
 function render(){
  const p=parseFpl(byId('fpl').value); if(!p.origin){alert('Please paste a valid ICAO flight plan.');return}
  const countries=countryList(p); window.currentParsed=p; window.currentCountries=countries;
@@ -423,9 +440,9 @@ function render(){
  const permits=countries.filter(c=>{const r=RULES[c];return r.status==='YES'||r.status==='CONDITIONAL';}).length,review=countries.filter(c=>RULES[c].status==='REVIEW').length;
  byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Countries',countries.length],['Overflight / Review',permits+' / '+review]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
  byId('route').textContent=(p.route||'No route parsed')+(window.routeWarning?'\n\n⚠ '+window.routeWarning:''); byId('fplMeta').innerHTML=[['EOBT',p.eobt||'REVIEW'],['EET',p.eetTotal||'REVIEW'],['FL',p.level||'REVIEW'],['DOF',p.date||'REVIEW'],['REG',p.reg||'REVIEW']].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
- byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...RULES[c],status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':RULES[c].status},x=permitBlock(c,p),landing=(p.destination&&c===destinationCountry(p.destination))?'REVIEW':'NO';return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(landing==='REVIEW'?'review':'na')+'">'+landing+'</span></td><td>'+r.validity+'</td><td>'+((r.handler||'—')+'<br><span class="source">'+(r.action||'')+'</span>')+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.entryTime+' / '+x.exitTime+' • '+x.confidence+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td>'+((r.status==='YES'||r.status==='CONDITIONAL')?'<button class="btn small" onclick="showEmail(\\''+c+'\\')">EMAIL</button>':'—')+'</td></tr>'}).join(''):'<tr><td colspan="9">No Asia FIR/country match detected. Manual route review still recommended.</td></tr>';
+ byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...RULES[c],status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':RULES[c].status},x=permitBlock(c,p),l=landingBlock(c,p);return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(l.status==='YES'?'yes':l.status==='REVIEW'?'review':'na')+'">'+l.status+'</span><br><span class="source">'+(l.airport?l.operation+' '+l.airport:l.reason)+'</span></td><td>'+r.validity+'</td><td>'+((r.handler||'—')+'<br><span class="source">'+(r.action||'')+'</span>')+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.entryTime+' / '+x.exitTime+' • '+x.confidence+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td>'+((r.status==='YES'||r.status==='CONDITIONAL')?'<button class="btn small" onclick="showEmail(\\''+c+'\\')">EMAIL</button>':'—')+'</td></tr>'}).join(''):'<tr><td colspan="9">No Asia FIR/country match detected. Manual route review still recommended.</td></tr>';
 }
-window.showEmail=function(c){byId('email').textContent=emailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
+window.showEmail=function(c){byId('email').textContent=emailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}\nwindow.showLandingEmail=function(c){byId('email').textContent=landingEmailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
 byId('check').onclick=render;
 byId('sample').onclick=function(){byId('fpl').value=SAMPLE;render()};
 byId('clear').onclick=function(){byId('fpl').value='';byId('results').classList.add('hidden');byId('emailCard').classList.add('hidden')};
