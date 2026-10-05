@@ -21,7 +21,7 @@ textarea,input{width:100%;background:#09111e;color:#eaf1ff;border:1px solid #2b3
 </head>
 <body>
 <main>
-<div class="header"><div><div class="title">✈️ AD HOC Overflight Permit Checker</div><div class="sub">Asia edition • paste a complete ICAO flight plan and screen the route for permit/clearance requirements.</div></div><div class="badge">V2 • ASIA DATABASE</div></div>
+<div class="header"><div><div class="title">✈️ AD HOC Overflight Permit Checker</div><div class="sub">Asia edition • paste a complete ICAO flight plan and screen the route by COUNTRY for permit/clearance requirements.</div></div><div class="badge">V2 • ASIA DATABASE</div></div>
 
 <section class="card">
 <label for="fpl">ICAO FLIGHT PLAN</label>
@@ -176,8 +176,9 @@ function parseFpl(raw){
 }
 function detectFirs(p){
  const all=(p.eet+' '+p.route).toUpperCase();
- // FIRs are only detection inputs. The result is immediately reduced to unique
- // countries, because the permit decision is made at country level, not FIR level.
+ // FIRs are detection inputs only. They are immediately collapsed to unique COUNTRIES.
+ // Multiple FIRs, FIR re-entries, or adjacent FIRs within the same country never create
+ // separate permit rows or separate permit applications.
  return Object.entries(RULES).filter(([k,r])=>r.firs.some(f=>new RegExp('\\b'+f+'\\b').test(all))).map(x=>x[0]);
 }
 function routeCountryOverrides(p){
@@ -190,8 +191,8 @@ function routeCountryOverrides(p){
  return out;
 }
 function countryList(p){
- // One permit decision per country, even when the route crosses multiple FIRs
- // belonging to that same country. FIRs never create separate permit rows.
+ // One permit decision per COUNTRY, even when the route crosses multiple FIRs or re-enters
+ // the same country. FIRs never create separate permit rows or separate permit requests.
  const found=[...new Set([...detectFirs(p),...routeCountryOverrides(p)])];
  const eet=String(p.eet||'').toUpperCase();
  const route=String(p.route||'').toUpperCase();
@@ -430,11 +431,12 @@ function crossingPatternsFor(country,p){
 }
 
 function crossingFor(country,p){
- // Permit validity/action is always evaluated once at COUNTRY level. A country may
- // contain several FIRs or re-enter the same FIR; those FIR boundaries do not create
- // separate permit requests. Verified route patterns can supply named country entry/
- // exit fixes. Otherwise use the first and last EET anchors belonging to ANY FIR in
- // that country and leave the actual boundary fixes as REVIEW rather than inventing them.
+ // Permit validity/action is evaluated once at COUNTRY level. FIR boundaries are never
+ // treated as separate permit events. A country may contain several FIRs or the route
+ // may re-enter the same FIR; all of those segments belong to the same country permit.
+ // Verified route patterns supply named country entry/exit fixes. Otherwise the resolver
+ // uses the first and last EET anchors belonging to ANY FIR in that country and keeps
+ // boundary fixes REVIEW rather than inventing them.
  const pattern=crossingPatternFor(country,p);
  if(pattern){
   const c=pattern.crossings[country],t=pattern.eet?.[country]||{};
