@@ -183,7 +183,7 @@ function routeCountryOverrides(p){
  if(/\b(?:LAMEN|PK|MADUK|LEGIV|ADGOL|IDGAG|QNX|XISLI|SGM|LINSO)\b/.test(r))out.push('CHINA');
  if(/\b(?:LINSO|ANSOS|LSO|A201|A599)\b/.test(r))out.push('MYANMAR');
  if(/\b(?:TEBUL|AGARTALA|A201)\b/.test(r))out.push('BANGLADESH');
- if(/\b(?:RCAA|HLG|MOLKA|POTIB|TNN|TONGA|PILOX)\b/.test(r))out.push('TAIWAN');
+ if(p.origin==='RCTP'||p.destination==='RCTP'||/\b(?:RCAA|HLG|MOLKA|POTIB|TNN|TONGA|PILOX)\b/.test(r))out.push('TAIWAN');
  if(p.destination==='VIDP'||/\b(?:LKN|JAL)\b/.test(r))out.push('INDIA');
  return out;
 }
@@ -312,6 +312,18 @@ const CROSSING_PATTERNS=[
   crossings:{THAILAND:{entry:'ABTOK',exit:'VTBS'}},
   eet:{THAILAND:{entry:'0125',exit:'0206'}}
  },
+ {id:'UPS54_RCTP_VHHH',origin:'RCTP',destination:'VHHH',
+  routeIncludes:['CHALI','MKG','ELATO','MAGOG','ENPET','FISHA','ABBEY'],
+  source:'SOURCE-VERIFIED UPS54 OFP',
+  crossings:{TAIWAN:{entry:'RCTP',exit:'ELATO'}},
+  eet:{TAIWAN:{entry:'0000',exit:'0041'}}
+ },
+ {id:'UPS504_RCTP_RPLC',origin:'RCTP',destination:'RPLC',
+  routeIncludes:['TINHO','HCN','POTIB','SANRO','MALIB'],
+  source:'SOURCE-VERIFIED UPS504 OFP',
+  crossings:{TAIWAN:{entry:'RCTP',exit:'HCN'},PHILIPPINES:{entry:'POTIB',exit:'RPLC'}},
+  eet:{TAIWAN:{entry:'0000',exit:'0032'},PHILIPPINES:{entry:'0039',exit:'0134'}}
+ },
  {id:'UPS29_VOBL_EDDK',origin:'VOBL',destination:'EDDK',
   routeIncludes:['VAGPU','AGELA','PARAR','TULBU','TOKRA','PASUM','TANSA'],
   source:'SOURCE-VERIFIED UPS29 OFP',
@@ -364,6 +376,26 @@ function crossingFor(country,p){
  const firs=RULES[country]?.firs||[], anchors=parseEetAnchors(p.eet||'');
  const hits=anchors.map((a,i)=>({a,i})).filter(x=>firs.includes(x.a.fir));
  if(hits.length){
+  // A country/FIR may appear in multiple non-contiguous segments. Do not collapse
+  // those segments into one fictitious entry/exit crossing.
+  const segments=[];
+  let current=null;
+  for(const hit of hits){
+   if(!current || hit.i!==current.lastIndex+1){
+    current={startIndex:hit.i,endIndex:hit.i,lastIndex:hit.i};
+    segments.push(current);
+   }else{
+    current.endIndex=hit.i;
+    current.lastIndex=hit.i;
+   }
+  }
+  if(segments.length>1){
+   return {
+    entry:'REVIEW',exit:'REVIEW',
+    entryTime:'REVIEW',exitTime:'REVIEW',
+    confidence:'REVIEW — country/FIR appears in multiple non-contiguous segments; use a source-verified route pattern'
+   };
+  }
   const first=hits[0], last=hits[hits.length-1], prev=anchors[first.i-1];
   const entryClock=prev?eetClock(p.eobt,prev.time,p.date):null;
   const exitClock=eetClock(p.eobt,last.a.time,p.date);
@@ -418,7 +450,7 @@ function permitValidityStatus(country,issuedAt,revisedEobt){
    : {status:'EXPIRED',reason:'Outside verified '+h+' hour validity',expires:expires.toISOString()};
 }
 
-function destinationCountry(icao){const m={WSSS:'SINGAPORE',VIDP:'INDIA',VOBL:'INDIA',RPLC:'PHILIPPINES',ZSPD:'CHINA',RKSI:'SOUTH_KOREA',ZGSZ:'CHINA',VVNB:'VIETNAM',VTBS:'THAILAND'};return m[icao]||null;}
+function destinationCountry(icao){const m={WSSS:'SINGAPORE',VIDP:'INDIA',VOBL:'INDIA',RPLC:'PHILIPPINES',ZSPD:'CHINA',RKSI:'SOUTH_KOREA',ZGSZ:'CHINA',VVNB:'VIETNAM',VTBS:'THAILAND',VHHH:'HONG_KONG'};return m[icao]||null;}
 function landingStatus(country,p){
  const r=RULES[country]||{}, oc=country===destinationCountry(p.origin), dc=country===destinationCountry(p.destination);
  if(!oc&&!dc) return {status:'NO',reason:'Transit only'};
