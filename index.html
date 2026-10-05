@@ -479,17 +479,16 @@ function crossingPatternFor(country,p){
    pattern.crossings?.[country]
  );
  if(exact)return exact;
-
- // Some verified patterns start inside the country, so the departure airport is
- // not present in the route token list. For those patterns, accept the verified
- // origin/destination pair when the named country exit/entry fix itself is present.
- // This prevents a valid RCTP-origin Taiwan crossing from falling back to REVIEW
- // merely because a SID/transition token changed.
+ // Verified corridor fallback: allow SID/transition changes. For an origin-country
+ // pattern only the named exit fix is required; transit patterns require both
+ // named boundary fixes. This prevents valid UPS54 RCTP->VHHH Taiwan data
+ // from falling back to REVIEW when the route signature changes.
  return CROSSING_PATTERNS.find(pattern=>{
    if(pattern.origin!==origin||pattern.destination!==destination||!pattern.crossings?.[country])return false;
    const c=pattern.crossings[country];
-   const fixes=[c.entry,c.exit].filter(x=>x&&x!==origin&&x!==destination);
-   return fixes.length>0 && fixes.every(x=>r.includes(String(x).toUpperCase()));
+   const fixes=country===destinationCountry(origin)?[c.exit]:[c.entry,c.exit];
+   const required=fixes.filter(x=>x&&x!==origin&&x!==destination).map(x=>String(x).toUpperCase());
+   return required.length>0&&required.every(x=>r.includes(x));
  })||null;
 }
 
