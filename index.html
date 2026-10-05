@@ -84,7 +84,7 @@ if(typeof parseCoreFpl!=='function'){
 */
 const RULES={
  AFGHANISTAN:{name:"Afghanistan",firs:["OAKX"],status:"NO",validity:"N/A — no request",entryExit:true,note:"UPS operational permit playbook lists Afghanistan as a 24-hour permit, but specifically says DO NOT REQUEST AT THIS TIME because UPS uses one corridor and no request is needed.",source:"UPS operational permit playbook",handler:"No request at this time",action:"Do not request"},
- BULGARIA:{name:"Bulgaria",firs:["LBSR"],status:"YES",validity:"48 hours",entryExit:true,note:"UPS permit guide: Bulgaria permits are valid 48 hours. Seasonal requests go to the Bulgarian CAA; Ad Hoc uses the same notification process, and Prime Trip Support may be used if desired.",source:"UPS operational permit playbook",handler:"CAA Bulgaria / Prime Trip Support",action:"Ad Hoc: send OCR output to Bulgaria CAA; PTS may be used"},
+ BULGARIA:{name:"Bulgaria",firs:["LBSR"],status:"YES",validity:"48 hours",entryExit:true,note:"UPS operational permit playbook lists Bulgaria as a 48-hour overflight permit. UPS usually obtains it; Prime Trip Support handles weekends.",source:"UPS operational permit playbook",handler:"UPS / Prime weekend",action:"Use applicable UPS permit process; Prime handles weekends"},
  EGYPT:{name:"Egypt",firs:["HECC"],status:"YES",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Egypt as a 24-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  FIJI:{name:"Fiji",firs:["NF"],status:"YES",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Fiji as a 24-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  TONGA:{name:"Tonga",firs:["NF"],status:"YES",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Tonga as a 24-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
@@ -117,7 +117,7 @@ const RULES={
  NEPAL:{name:"Nepal",firs:["VNSM"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Nepal as a 72-hour overflight permit.",source:"UPS operational permit playbook",handler:"UPS / operational permit process",action:"Use applicable UPS permit request process"},
  NORTH_KOREA:{name:"North Korea",firs:["ZKKP"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
  OMAN:{name:"Oman",firs:["OOMM"],status:"YES",validity:"48 hours",entryExit:true,note:"UPS operational permit playbook lists Oman as a 48-hour overflight permit handled through Prime Trip Support. This is the UPS operational window used for scheduled permit planning.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
- PAKISTAN:{name:"Pakistan",firs:["OPLR","OPKR"],status:"YES",validity:"48 hours",entryExit:true,note:"UPS operational permit playbook lists Pakistan as a 48-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
+ PAKISTAN:{name:"Pakistan",firs:["OPKR"],status:"YES",validity:"48 hours",entryExit:true,note:"UPS operational permit playbook lists Pakistan as a 48-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  PHILIPPINES:{name:"Philippines",firs:["RPHI"],status:"YES",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists the Philippines as a 24-hour overflight permit. UPS normally obtains this itself, with Prime Trip Support used on weekends when needed.",source:"UPS operational permit playbook",handler:"UPS / Prime weekend",action:"Use Country Aircom template; Prime may assist on weekends"},
  QATAR:{name:"Qatar",firs:["OTDF"],status:"CONDITIONAL",validity:"Per scheduled authorization / traffic rights",entryExit:true,note:"QCAA’s current flight-clearance portal explicitly covers civil non-scheduled flights and says it is for non-scheduled operations only. QCAA separately manages regular airline schedules and changes under the applicable air transport agreements. Therefore the non-scheduled overflight-permit process should not be applied to a delayed UPS scheduled transit; verify the applicable scheduled traffic-rights/authorization and any schedule-change condition.",source:"QCAA current Non-Scheduled Flights Service + Airline Companies scheduled-service framework"},
  SAUDI_ARABIA:{name:"Saudi Arabia",firs:["OEJD","OERK"],status:"YES",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Saudi Arabia as a 24-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
@@ -131,10 +131,10 @@ const RULES={
  TAJIKISTAN:{name:"Tajikistan",firs:["UTDD"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Tajikistan as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  THAILAND:{name:"Thailand",firs:["VTBB"],status:"YES",landingStatus:"YES",landingNote:"Landing/takeoff permit applies for Thailand; BKK operations handles the landing authorization.",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Thailand as a 24-hour overflight permit for overflight only. BKK takeoff/landing operations are handled separately by UPS. Prime Trip Support handles overflight permit requests.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  TIMOR_LESTE:{name:"Timor-Leste",firs:["WAAF"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
- TURKEY:{name:"Türkiye",firs:["LTAA","LTBB"],status:"NO",validity:"No Ad Hoc overflight permit; Item 18 statement required",entryExit:true,note:"UPS operational permit playbook lists Turkey among countries that do not require permits, but the flight plan must include a GENERAL CARGO FLIGHT statement in Item 18.",source:"UPS operational permit playbook",handler:"FPL / operational requirement",action:"No overflight permit; add GENERAL CARGO FLIGHT in Item 18"},
- TURKMENISTAN:{name:"Turkmenistan",firs:["UTAV","UTAA"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Turkmenistan as a 96-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
+ TURKEY:{name:"Türkiye",firs:["LTAA"],status:"NO",validity:"No Ad Hoc overflight permit; Item 18 statement required",entryExit:true,note:"UPS operational permit playbook lists Turkey among countries that do not require permits, but the flight plan must include a GENERAL CARGO FLIGHT statement in Item 18.",source:"UPS operational permit playbook",handler:"FPL / operational requirement",action:"No overflight permit; add GENERAL CARGO FLIGHT in Item 18"},
+ TURKMENISTAN:{name:"Turkmenistan",firs:["UTAA"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Turkmenistan as a 96-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  UAE:{name:"United Arab Emirates",firs:["OMAE"],status:"NO",validity:"No ad hoc permit for regular UPS overflight",entryExit:true,note:"UPS operational permit playbook states that UAE is not required for regular UPS flights; UAE handling is only needed for CMB flights. Do not apply charter/non-scheduled permit requirements to a normal UPS overflight.",source:"UPS operational permit playbook",handler:"No action for regular UPS",action:"CMB flights only"},
- UZBEKISTAN:{name:"Uzbekistan",firs:["UZSD","UTTT"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Uzbekistan as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
+ UZBEKISTAN:{name:"Uzbekistan",firs:["UTTT"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Uzbekistan as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  VIETNAM:{name:"Vietnam",firs:["VVVV","VVHM","VVHN"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Vietnam as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  YEMEN:{name:"Yemen",firs:["OYSC"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
  ALBANIA:{name:"Albania",firs:["LAAA"],status:"NO",validity:"No ad hoc permit",entryExit:true,note:"UPS operational permit playbook lists Albania among countries that do not require permits for scheduled UPS ad hoc operations.",source:"UPS operational permit playbook"},
@@ -208,64 +208,38 @@ function routeCountryOverrides(p){
  if(/\b(?:LINSO|ANSOS|LSO|A201|A599)\b/.test(r))out.push('MYANMAR');
  if(/\b(?:TEBUL|AGARTALA|A201)\b/.test(r))out.push('BANGLADESH');
  if(p.origin==='RCTP'||p.destination==='RCTP'||/\b(?:RCAA|HLG|MOLKA|POTIB|TNN|TONGA|PILOX)\b/.test(r))out.push('TAIWAN');
- if(p.destination==='VIDP'||p.origin==='VIDP'||/\b(?:LKN|JAL|OROTI|ASARI|SULOM)\b/.test(r))out.push('INDIA');
- if(/\b(?:SULOM|INDEK|NONIB|PS|MOTMO)\b/.test(r))out.push('PAKISTAN');
- if(/\b(?:FIRUZ|VAJEN|DAROW)\b/.test(r))out.push('TAJIKISTAN');
- if(/\b(?:BUTRA|USETU|OGNOB|TOLIB|BUPOR|REGMO)\b/.test(r))out.push('UZBEKISTAN');
- if(/\b(?:POGON|RINIB)\b/.test(r))out.push('TURKMENISTAN');
- if(/\b(?:RODAR|AMOKU|ABROD|ERLEV|EDELU|SUBUT)\b/.test(r))out.push('AZERBAIJAN');
- if(/\b(?:MATAL)\b/.test(r))out.push('ARMENIA');
- if(/\b(?:REBLO|DELEL|EVGEG|ASBEP)\b/.test(r))out.push('TURKEY');
- if(/\b(?:ODERO)\b/.test(r))out.push('BULGARIA');
- if(/\b(?:ROSIORI|OPT|ULMIN|DEGET)\b/.test(r))out.push('ROMANIA');
- if(/\b(?:VEBOS|BEGLA)\b/.test(r))out.push('HUNGARY');
- if(/\b(?:STOCKERAU|STO|DITIS)\b/.test(r))out.push('AUSTRIA');
- if(/\b(?:RAPET|MASEK)\b/.test(r))out.push('CZECH_REPUBLIC');
- if(/\b(?:UVANO|BATEB|ERNEP)\b/.test(r))out.push('GERMANY');
+ if(p.destination==='VIDP'||/\b(?:LKN|JAL)\b/.test(r))out.push('INDIA');
  return out;
 }
 function countryList(p){
- const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
- const destinationCountryName=destinationCountry(String(p.destination||'').toUpperCase());
- const endpointCountries=[originCountry,destinationCountryName].filter(Boolean);
- const found=[...new Set([...endpointCountries,...detectFirs(p),...routeCountryOverrides(p)])];
+ const found=[...new Set([...detectFirs(p),...routeCountryOverrides(p)])];
  const eet=String(p.eet||'').toUpperCase();
  const route=String(p.route||'').toUpperCase();
  const chinaFirs=(RULES.CHINA.firs||[]).filter(x=>x!=="ZJSA");
  const chinaOther=chinaFirs.some(x=>new RegExp('(?:^|\\s)'+x+'(?:\\d{4}\\b|\\b)').test(eet+' '+route));
  if(found.includes('CHINA') && /(?:^|\\s)ZJSA\\d{4}\\b/.test(eet) && !chinaOther) found.splice(found.indexOf('CHINA'),1);
  const anchors=parseEetAnchors(eet);
- const routeTokensLocal=route.split(/\\s+/).filter(Boolean).map(t=>t.split('/')[0]);
-
+ const routeTokens=route.split(/\\s+/).filter(Boolean);
+ const overrideFixes={
+  CHINA:['LAMEN','PK','MADUK','LEGIV','ADGOL','IDGAG','QNX','XISLI','SGM'],
+  MYANMAR:['LINSO','ANSOS','LSO'],
+  BANGLADESH:['TEBUL','AGARTALA','BOGEP','RAJ'],
+  TAIWAN:['RCAA','HLG','MOLKA','POTIB','TNN','TONGA','PILOX'],
+  INDIA:['LKN','JAL']
+ };
+ const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
  const orderIndex=country=>{
+  // Always put the country of departure first. The flight starts inside that
+  // country, so it is the first country in the operational sequence even when
+  // the departure FIR is not present as an EET anchor.
   if(country===originCountry) return -100000;
-
-  // Verified route patterns are the primary source for country order. This is
-  // essential when multiple countries share the same FIR (e.g. Myanmar and
-  // India both being represented by VYYF on UPS9).
-  const pattern=typeof crossingPatternFor==='function'?crossingPatternFor(country,p):null;
-  if(pattern?.crossings?.[country]){
-   const c=pattern.crossings[country];
-   const fixes=[c.entry,c.exit].filter(Boolean);
-   const positions=fixes.map(f=>routeTokensLocal.indexOf(String(f).toUpperCase())).filter(i=>i>=0);
-   if(positions.length)return Math.min(...positions);
-  }
-
-  // Fall back to the earliest verified FIR anchor only when no route-specific
-  // crossing pattern is available.
+  // For every other country, use the earliest verified FIR anchor on the route.
+  // This preserves actual geographic/operational order instead of RULES object order.
   const ai=anchors.findIndex(a=>(RULES[country]?.firs||[]).includes(a.fir));
-  if(ai>=0)return 1000+ai;
-
-  // Final fallback: known country-specific route fixes.
-  const overrideFixes={
-   CHINA:['LAMEN','PK','MADUK','LEGIV','ADGOL','IDGAG','QNX','XISLI','SGM'],
-   MYANMAR:['LINSO','ANSOS','LSO','TANEK','DWI','LALIT','LULDA'],
-   BANGLADESH:['TEBUL','AGARTALA','BOGEP','RAJ'],
-   TAIWAN:['RCAA','HLG','MOLKA','POTIB','TNN','TONGA','PILOX'],
-   INDIA:['LKN','JAL','LULDA','XIVIL']
-  };
-  const ri=routeTokensLocal.findIndex(t=>(overrideFixes[country]||[]).includes(t));
-  return ri>=0?2000+ri:50000;
+  if(ai>=0) return ai;
+  // If no FIR EET anchor is available, use the earliest known route fix.
+  const ri=routeTokens.findIndex(t=>(overrideFixes[country]||[]).includes(t));
+  return ri>=0 ? 10000+ri : 50000;
  };
  return found.map((country,i)=>({country,i,order:orderIndex(country)}))
   .sort((a,b)=>a.order-b.order||a.i-b.i).map(x=>x.country);
@@ -278,45 +252,7 @@ function pill(r){const cls=r.status==='YES'?'yes':r.status==='NO'?'na':'review';
  contains the verified route signature. EET anchors alone supply timing only.
  This keeps the resolver generic while preventing it from inventing boundary fixes.
 */
-const CROSSING_PATTERNS=[
- {id:'UPS15_VIDP_EDDK',origin:'VIDP',destination:'EDDK',
-  routeIncludes:['SULOM','GERRY','MOTMO','FIRUZ','VAJEN','DAROW','BUTRA','REGMO','POGON','RINIB','VARAN','RODAR','SUBUT','MATAL','REBLO','ODERO','OPT','ULMIN','DEGET','VEBOS','BEGLA','STO','DITIS','RAPET','MASEK','UVANO','ERNEP'],
-  source:'SOURCE-VERIFIED UPS15 VIDP-EDDK OFP',
-  crossings:{
-   INDIA:{entry:'VIDP',exit:'SULOM'},
-   PAKISTAN:{entry:'SULOM',exit:'GERRY'},
-   AFGHANISTAN:{entry:'MOTMO',exit:'FIRUZ'},
-   TAJIKISTAN:{entry:'FIRUZ',exit:'DAROW'},
-   UZBEKISTAN:{entry:'BUTRA',exit:'REGMO'},
-   TURKMENISTAN:{entry:'POGON',exit:'VARAN'},
-   AZERBAIJAN:{entry:'RODAR',exit:'SUBUT'},
-   ARMENIA:{entry:'MATAL',exit:'MATAL'},
-   TURKEY:{entry:'REBLO',exit:'ODERO'},
-   BULGARIA:{entry:'ODERO',exit:'OPT'},
-   ROMANIA:{entry:'OPT',exit:'DEGET'},
-   HUNGARY:{entry:'VEBOS',exit:'BEGLA'},
-   AUSTRIA:{entry:'STO',exit:'DITIS'},
-   CZECH_REPUBLIC:{entry:'RAPET',exit:'MASEK'},
-   GERMANY:{entry:'UVANO',exit:'EDDK'}
-  },
-  eet:{
-   INDIA:{entry:'EOBT',exit:'0033'},
-   PAKISTAN:{entry:'0033',exit:'0118'},
-   AFGHANISTAN:{entry:'0120',exit:'0121'},
-   TAJIKISTAN:{entry:'0121',exit:'0140'},
-   UZBEKISTAN:{entry:'0200',exit:'0226'},
-   TURKMENISTAN:{entry:'0230',exit:'0258'},
-   AZERBAIJAN:{entry:'0338',exit:'0405'},
-   ARMENIA:{entry:'0413',exit:'0413'},
-   TURKEY:{entry:'0424',exit:'0543'},
-   BULGARIA:{entry:'0543',exit:'0609'},
-   ROMANIA:{entry:'0609',exit:'0640'},
-   HUNGARY:{entry:'0655',exit:'0704'},
-   AUSTRIA:{entry:'0712',exit:'0718'},
-   CZECH_REPUBLIC:{entry:'0737',exit:'0753'},
-   GERMANY:{entry:'0758',exit:'EOBT'}
-  }
- },
+const CROSSING_PATTERNS=[{id:'UPS15_VIDP_EDDK',origin:'VIDP',destination:'EDDK',routeIncludes:['SULOM','GERRY','MOTMO','FIRUZ','VAJEN','DAROW','BUTRA','REGMO','POGON','RINIB','VARAN','RODAR','SUBUT','MATAL','REBLO','ODERO','OPT','ULMIN','DEGET','VEBOS','BEGLA','STO','DITIS','RAPET','MASEK','UVANO','ERNEP'],source:'SOURCE-VERIFIED UPS15 VIDP-EDDK OFP',crossings:{INDIA:{entry:'VIDP',exit:'SULOM'},PAKISTAN:{entry:'SULOM',exit:'GERRY'},AFGHANISTAN:{entry:'MOTMO',exit:'FIRUZ'},TAJIKISTAN:{entry:'FIRUZ',exit:'DAROW'},UZBEKISTAN:{entry:'BUTRA',exit:'REGMO'},TURKMENISTAN:{entry:'POGON',exit:'VARAN'},AZERBAIJAN:{entry:'RODAR',exit:'SUBUT'},ARMENIA:{entry:'MATAL',exit:'MATAL'},TURKEY:{entry:'REBLO',exit:'ODERO'},BULGARIA:{entry:'ODERO',exit:'OPT'},ROMANIA:{entry:'OPT',exit:'DEGET'},HUNGARY:{entry:'VEBOS',exit:'BEGLA'},AUSTRIA:{entry:'STO',exit:'DITIS'},CZECH_REPUBLIC:{entry:'RAPET',exit:'MASEK'},GERMANY:{entry:'UVANO',exit:'EDDK'}},eet:{INDIA:{entry:'EOBT',exit:'0033'},PAKISTAN:{entry:'0033',exit:'0118'},AFGHANISTAN:{entry:'0120',exit:'0121'},TAJIKISTAN:{entry:'0121',exit:'0140'},UZBEKISTAN:{entry:'0200',exit:'0226'},TURKMENISTAN:{entry:'0230',exit:'0258'},AZERBAIJAN:{entry:'0338',exit:'0405'},ARMENIA:{entry:'0413',exit:'0413'},TURKEY:{entry:'0424',exit:'0543'},BULGARIA:{entry:'0543',exit:'0609'},ROMANIA:{entry:'0609',exit:'0640'},HUNGARY:{entry:'0655',exit:'0704'},AUSTRIA:{entry:'0712',exit:'0718'},CZECH_REPUBLIC:{entry:'0737',exit:'0753'},GERMANY:{entry:'0758',exit:'EOBT'}}},
  {id:'UPS99_VVNB_RKSI',origin:'VVNB',destination:'RKSI',
   routeIncludes:['NAKHA','WUY','GOSMA','UPMAT','IDPOG','WHA','LAMEN'],
   source:'SOURCE-VERIFIED UPS99 OFP',
@@ -477,23 +413,14 @@ const CROSSING_PATTERNS=[
   }
  },
  {id:'UPS9_ZGSZ_VOBL',origin:'ZGSZ',destination:'VOBL',
-  routeIncludes:['SIKOU','SAMAS','AGPOR','NONEM','ASSAD','DONGI','VILAO','ENBIL','SAVANNAKHET','OKENA','GUROK','RAMEI','TANEK','DWI','LALIT','LULDA','XIVIL'],
+  routeIncludes:['SIKOU','SAMAS','AGPOR','NONEM','ASSAD','DONGI','OKENA','DWI','LALIT','XIVIL'],
   source:'SOURCE-VERIFIED UPS9 ZGSZ-VOBL OFP',
   crossings:{
-   HONG_KONG:{entry:'SIERA',exit:'SIKOU'},
-   CHINA:{entry:'SIKOU',exit:'ASSAD',segments:[{entry:'ZGSZ',exit:'SIERA'},{entry:'SIKOU',exit:'ASSAD'}]},
-   VIETNAM:{entry:'ASSAD',exit:'VILAO'},
-   LAOS:{entry:'VILAO',exit:'SAVANNAKHET'},
-   THAILAND:{entry:'SAVANNAKHET',exit:'TANEK'},
-   MYANMAR:{entry:'TANEK',exit:'LULDA'},
-   INDIA:{entry:'LULDA',exit:'VOBL'}
-  },
-  eet:{
-   VIETNAM:{entry:'0105',exit:'0119'},
-   LAOS:{entry:'0119',exit:'0130'},
-   THAILAND:{entry:'0130',exit:'0218'},
-   MYANMAR:{entry:'0218',exit:'0252'},
-   INDIA:{entry:'0252',exit:'EOBT'}
+   CHINA:{entry:'SIKOU',exit:'NONEM'},
+   VIETNAM:{entry:'ASSAD',exit:'DONGI'},
+   THAILAND:{entry:'OKENA',exit:'DWI'},
+   MYANMAR:{entry:'DWI',exit:'LALIT'},
+   INDIA:{entry:'XIVIL',exit:'VOBL'}
   }
  },
  {id:'UPS15_ZGSZ_VIDP',origin:'ZGSZ',destination:'VIDP',
@@ -571,18 +498,6 @@ function crossingPatternFor(country,p){
    pattern.crossings?.[country]
  );
  if(exact)return exact;
-
- // UPS9 is a source-verified corridor. If its key boundary fixes are present,
- // retain the verified country crossings even if an OFP route formatting change
- // prevents the long route signature from matching.
- if(origin==='ZGSZ'&&destination==='VOBL'){
-  const ups9=CROSSING_PATTERNS.find(x=>x.id==='UPS9_ZGSZ_VOBL'&&x.crossings?.[country]);
-  if(ups9){
-   const c=ups9.crossings[country];
-   const needed=[c.entry,c.exit].filter(x=>x&&x!==origin&&x!==destination);
-   if(needed.every(x=>r.includes(String(x).toUpperCase())))return ups9;
-  }
- }
  // Verified corridor fallback: allow SID/transition changes. For an origin-country
  // pattern only the named exit fix is required; transit patterns require both
  // named boundary fixes. This prevents valid UPS54 RCTP->VHHH Taiwan data
@@ -708,40 +623,6 @@ function ofpFirBoundaryFor(country,p){
   exitEet:exitPoint.eet||null
  }
 }
-/*
- NATIONAL-BOUNDARY CHAINING
- When two consecutive permit countries share a land border, the exit fix
- of the preceding country is the entry fix for the following country.
- FIR boundaries are not used as a substitute for national boundaries: ICAO
- notes that FIRs can include airspace over the high seas, so the chain is
- applied only to known land-border pairs. Special FIR overlays such as
- Hong Kong therefore do not break the underlying China → Vietnam chain.
-*/
-const LAND_BORDER_PAIRS=new Set([
- 'BANGLADESH|INDIA','BANGLADESH|MYANMAR','BHUTAN|CHINA','BHUTAN|INDIA',
- 'CAMBODIA|LAOS','CAMBODIA|THAILAND','CAMBODIA|VIETNAM',
- 'CHINA|INDIA','CHINA|LAOS','CHINA|MYANMAR','CHINA|VIETNAM',
- 'INDIA|MYANMAR','INDIA|NEPAL','INDIA|PAKISTAN',
- 'LAOS|MYANMAR','LAOS|THAILAND','LAOS|VIETNAM',
- 'MYANMAR|THAILAND','MYANMAR|VIETNAM'
-]);
-function landBorderPair(a,b){
- const x=[String(a||'').toUpperCase(),String(b||'').toUpperCase()].sort();
- return LAND_BORDER_PAIRS.has(x[0]+'|'+x[1]);
-}
-function chainedPredecessor(country,p){
- const sequence=countryList(p),idx=sequence.indexOf(country);
- if(idx<=0)return null;
- for(let i=idx-1;i>=0;i--){
-  const prior=sequence[i];
-  if(!landBorderPair(prior,country))continue;
-  const priorPattern=crossingPatternFor(prior,p);
-  const priorCross=priorPattern?.crossings?.[prior];
-  if(priorCross?.exit)return {country:prior,crossing:priorCross,eet:priorPattern?.eet?.[prior]?.exit||null};
- }
- return null;
-}
-
 function crossingFor(country,p){
  const originIcao=String(p.origin||'').toUpperCase();
  const destinationIcao=String(p.destination||'').toUpperCase();
@@ -770,18 +651,6 @@ function crossingFor(country,p){
  }
 
  if(country===originCountry){
-  // Some routes depart and re-enter the same country after transiting a
-  // neighboring FIR. For UPS9, China is one permit span (ZGSZ→ASSAD),
-  // with Hong Kong FIR interrupting Chinese airspace (SIERA→SIKOU).
-  if(country==='CHINA' && originIcao==='ZGSZ' && destinationIcao==='VOBL' && pattern){
-   return {
-    entry:originIcao,
-    exit:'ASSAD',
-    entryTime:p.eobt||'—',
-    exitTime:pattern.eet?.VIETNAM?.entry?eetClock(p.eobt,pattern.eet.VIETNAM.entry,p.date).time:'REVIEW',
-    confidence:'China permit span ZGSZ → ASSAD • segments ZGSZ → SIERA / SIKOU → ASSAD • Hong Kong FIR SIERA → SIKOU'
-   };
-  }
   const sequence=countryList(p);
   const idx=sequence.indexOf(country);
   const nextCountry=idx>=0?sequence[idx+1]:null;
@@ -804,8 +673,8 @@ function crossingFor(country,p){
   // Arrival side: use the literal first fix listed inside the arriving country's
   // FIR section. Do not substitute the FIR EET anchor/boundary entry when LIDO
   // prints that anchor before the FIR header.
-  const firstFix=pattern?.crossings?.[country]?.entry||auto?.firstFix||'REVIEW';
-  const firstEet=pattern?.eet?.[country]?.entry||auto?.firstFixEet||null;
+  const firstFix=auto?.firstFix||pattern?.crossings?.[country]?.entry||'REVIEW';
+  const firstEet=auto?.firstFixEet||pattern?.eet?.[country]?.entry||null;
   return {
    entry:firstFix,
    exit:destinationIcao,
@@ -823,20 +692,9 @@ function crossingFor(country,p){
  // geographic boundary detection. A country may contain multiple FIRs.
  if(pattern){
   const c=pattern.crossings[country],t=pattern.eet?.[country]||{};
-  const chain=chainedPredecessor(country,p);
-  const chainedEntry=chain?.crossing?.exit||c.entry;
-  const chainedEntryEet=chain?.eet||t.entry||null;
-  const ec=t.entry==='EOBT'&&!chain?{time:p.eobt||'REVIEW'}:chainedEntryEet?eetClock(p.eobt,chainedEntryEet,p.date):{time:'REVIEW'};
+  const ec=t.entry==='EOBT'?{time:p.eobt||'REVIEW'}:t.entry?eetClock(p.eobt,t.entry,p.date):{time:'REVIEW'};
   const xc=t.exit==='EOBT'?{time:p.eobt||'REVIEW'}:t.exit?eetClock(p.eobt,t.exit,p.date):{time:'REVIEW'};
-  return {
-   entry:chainedEntry,
-   exit:c.exit,
-   entryTime:ec.time,
-   exitTime:xc.time,
-   confidence:chain
-    ? pattern.source+' • chained national boundary from '+chain.country+' exit'
-    : pattern.source
-  };
+  return {entry:c.entry,exit:c.exit,entryTime:ec.time,exitTime:xc.time,confidence:pattern.source};
  }
  if(auto){
   const entryTime=auto.entryEet?eetClock(p.eobt,auto.entryEet,p.date).time:'REVIEW';
@@ -972,7 +830,7 @@ function render(){
  const permits=countries.filter(c=>{const r=overflightRule(c,p);return r.status==='YES'||r.status==='CONDITIONAL';}).length,review=countries.filter(c=>overflightRule(c,p).status==='REVIEW').length;
  byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Countries',countries.length],['Overflight / Review',permits+' / '+review]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
  byId('route').textContent=(p.route||'No route parsed')+(window.routeWarning?'\n\n⚠ '+window.routeWarning:''); byId('fplMeta').innerHTML=[['EOBT',p.eobt||'REVIEW'],['EET',p.eetTotal||'REVIEW'],['FL',p.level||'REVIEW'],['DOF',p.date||'REVIEW'],['REG',p.reg||'REVIEW']].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
- byId('tbody').innerHTML=countries.length?countries.map(c=>{const endpoint=isEndpointCountry(c,p);const r={...overflightRule(c,p),status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':overflightRule(c,p).status},x=boundaryDetection(c,p),l=landingBlock(c,p);const ovfCell=endpoint?'<span class="pill na">N/A</span>':pill(r);const ovfAction=!endpoint&&(r.status==='YES'||r.status==='CONDITIONAL')?'<button class="btn small" onclick="showEmail(\''+c+'\')">OVF</button>':'—';const endpointAction=endpoint&&destinationCountry(String(p.destination||'').toUpperCase())!=='UNITED_STATES'?'<button class="btn small" onclick="showLandingEmail(\''+c+'\')">T/O-LDG</button>':'';return '<tr><td><strong>'+r.name+'</strong></td><td>'+ovfCell+'</td><td><span class="pill '+(l.status==='YES'?'yes':l.status==='REVIEW'?'review':'na')+'">'+l.status+'</span><br><span class="source">'+(l.airport?l.operation+' '+l.airport:l.reason)+'</span></td><td>'+r.validity+'</td><td>'+((r.handler||'—')+'<br><span class="source">'+(endpoint?'Endpoint operation — see T/O-LDG':(r.action||''))+'</span>')+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.entryTime+' / '+x.exitTime+' • '+x.confidence+' • boundary detection '+(x.detected?'OK':'REVIEW')+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td>'+ovfAction+' '+endpointAction+'</td></tr>'}).join(''):'<tr><td colspan="9">No Asia country match detected. Manual route review still recommended.</td></tr>';
+ byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...overflightRule(c,p),status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':overflightRule(c,p).status},x=boundaryDetection(c,p),l=landingBlock(c,p);return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(l.status==='YES'?'yes':l.status==='REVIEW'?'review':'na')+'">'+l.status+'</span><br><span class="source">'+(l.airport?l.operation+' '+l.airport:l.reason)+'</span></td><td>'+r.validity+'</td><td>'+((r.handler||'—')+'<br><span class="source">'+(r.action||'')+'</span>')+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.entryTime+' / '+x.exitTime+' • '+x.confidence+' • boundary detection '+(x.detected?'OK':'REVIEW')+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td>'+((r.status==='YES'||r.status==='CONDITIONAL')?'<button class="btn small" onclick="showEmail(\''+c+'\')">OVF</button>':'—')+' '+(isEndpointCountry(c,p)?'<button class="btn small" onclick="showLandingEmail(\''+c+'\')">T/L EMAIL</button>':'')+'</td></tr>'}).join(''):'<tr><td colspan="9">No Asia country match detected. Manual route review still recommended.</td></tr>';
 }
 function currentParsedFpl(){
  const p=parseFpl(byId('fpl').value);
@@ -1016,6 +874,7 @@ byId('copy').onclick=async function(){try{await navigator.clipboard.writeText(by
 </script>
 </body>
 </html>
+
 
 
 
