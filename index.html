@@ -294,6 +294,18 @@ const CROSSING_PATTERNS=[
    CHINA:{entry:'0627',exit:'1059'}
   }
  },
+ {id:'UPS72_PANC_VVNB',origin:'PANC',destination:'VVNB',
+  routeIncludes:['DRAKE','TINHO','HCN','KAPLI','ALLEY','SIKOU','WUY','NAKHA'],
+  source:'SOURCE-VERIFIED UPS72 OFP',
+  crossings:{
+   CHINA:{entry:'SIKOU',exit:'LON'},
+   VIETNAM:{entry:'LON',exit:'NAKHA'}
+  },
+  eet:{
+   CHINA:{entry:'1059',exit:'1135'},
+   VIETNAM:{entry:'1135',exit:'1139'}
+  }
+ },
  {id:'UPS29_VOBL_EDDK',origin:'VOBL',destination:'EDDK',
   routeIncludes:['VAGPU','AGELA','PARAR','TULBU','TOKRA','PASUM','TANSA'],
   source:'SOURCE-VERIFIED UPS29 OFP',
