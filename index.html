@@ -522,29 +522,79 @@ function crossingPatternsFor(country,p){
 }
 
 function ofpFirBoundaryFor(country,p){
- const firSet=new Set(RULES[country]?.firs||[]);
+ /*
+  COUNTRY-LEVEL FIR BOUNDARY LOGIC:
+  - A country may contain multiple FIRs.
+  - A route may transition between those FIRs without leaving the country.
+  - Therefore collect EVERY OFP FIR section whose FIR code belongs to RULES[country].firs.
+  - Country entry = first waypoint in the first applicable country FIR section.
+  - Country exit  = last waypoint in the last applicable country FIR section.
+  - FIR-to-FIR transitions inside the same country are NOT country boundaries.
+  - Use the waypoint's own cumulative OFP EET (the =WAYPOINT row), not the next FIR
+    anchor, so the displayed boundary time is the actual waypoint crossing time.
+ */
+ const firSet=new Set((RULES[country]?.firs||[]).map(x=>String(x).toUpperCase()));
  const raw=String(p.raw||'');
  if(!raw||!firSet.size)return null;
+
  const lines=raw.split(/\r?\n/);
  const sections=[];
+
+ function waypointFromLine(line){
+  // OFP waypoint rows look like: "BULAN        E124 45.6 ..."
+  const m=String(line||'').match(/^\s*([A-Z][A-Z0-9]{2,5})\s+[EW]\d{3}\s+/);
+  return m?m[1].toUpperCase():null;
+ }
+
+ function waypointEetAt(index,name){
+  // The cumulative EET is normally on the immediately following =WAYPOINT row:
+  // "=RECON ... 10.10". Search only a few lines so unrelated later data is not used.
+  const target=new RegExp('^\\s*='+name+'\\b','i');
+  for(let k=index+1;k<Math.min(lines.length,index+5);k++){
+   if(/FIR\/[A-Z0-9]{2,6}/i.test(lines[k]))break;
+   if(target.test(lines[k])){
+    const m=lines[k].match(/\b(\d{2})[.:](\d{2})\b/);
+    if(m)return m[1]+m[2];
+   }
+  }
+  return null;
+ }
+
  for(let i=0;i<lines.length;i++){
-  const m=lines[i].match(/FIR\/([A-Z0-9]{2,6})/i);
-  if(!m||!firSet.has(m[1].toUpperCase()))continue;
-  const fir=m[1].toUpperCase();
+  const hm=lines[i].match(/FIR\/([A-Z0-9]{2,6})/i);
+  if(!hm)continue;
+  const fir=hm[1].toUpperCase();
+  if(!firSet.has(fir))continue;
+
   const points=[];
   for(let j=i+1;j<lines.length;j++){
-   if(/FIR\\/[A-Z0-9]{2,6}/i.test(lines[j]))break;
-   const pm=lines[j].match(/\b([A-Z][A-Z0-9]{2,5})\s+[EW]\d{3}/);
-   if(pm)points.push(pm[1].toUpperCase());
+   // A new FIR header closes this section. Do NOT close on an FIR belonging to
+   // another country permanently; later matching country FIRs are collected too.
+   if(/FIR\/[A-Z0-9]{2,6}/i.test(lines[j]))break;
+
+   const name=waypointFromLine(lines[j]);
+   if(!name)continue;
+
+   const eet=waypointEetAt(j,name);
+   points.push({name,eet});
   }
+
   if(points.length)sections.push({fir,points});
  }
+
  if(!sections.length)return null;
+
+ const first=sections[0], last=sections[sections.length-1];
+ const entryPoint=first.points[0], exitPoint=last.points[last.points.length-1];
+
  return {
-  firstFir:sections[0].fir,
-  lastFir:sections[sections.length-1].fir,
-  entry:sections[0].points[0],
-  exit:sections[sections.length-1].points[sections[sections.length-1].points.length-1]
+  firstFir:first.fir,
+  lastFir:last.fir,
+  firs:sections.map(s=>s.fir),
+  entry:entryPoint.name,
+  exit:exitPoint.name,
+  entryEet:entryPoint.eet||null,
+  exitEet:exitPoint.eet||null
  };
 }
 function crossingFor(country,p){
