@@ -316,13 +316,13 @@ const CROSSING_PATTERNS=[
   routeIncludes:['CHALI','MKG','ELATO','MAGOG','ENPET','FISHA','ABBEY'],
   source:'SOURCE-VERIFIED UPS54 OFP',
   crossings:{TAIWAN:{entry:'RCTP',exit:'ELATO'}},
-  eet:{TAIWAN:{entry:'0000',exit:'0041'}}
+  eet:{TAIWAN:{entry:'EOBT',exit:'0041'}}
  },
  {id:'UPS504_RCTP_RPLC',origin:'RCTP',destination:'RPLC',
   routeIncludes:['TINHO','HCN','POTIB','SANRO','MALIB'],
   source:'SOURCE-VERIFIED UPS504 OFP',
   crossings:{TAIWAN:{entry:'RCTP',exit:'HCN'},PHILIPPINES:{entry:'POTIB',exit:'RPLC'}},
-  eet:{TAIWAN:{entry:'0000',exit:'0032'},PHILIPPINES:{entry:'0039',exit:'0134'}}
+  eet:{TAIWAN:{entry:'EOBT',exit:'0032'},PHILIPPINES:{entry:'0039',exit:'0134'}}
  },
  {id:'UPS29_VOBL_EDDK',origin:'VOBL',destination:'EDDK',
   routeIncludes:['VAGPU','AGELA','PARAR','TULBU','TOKRA','PASUM','TANSA'],
@@ -364,8 +364,8 @@ function crossingFor(country,p){
  const pattern=crossingPatternFor(country,p);
  if(pattern){
   const c=pattern.crossings[country], t=pattern.eet?.[country]||{};
-  const entryClock=eetClock(p.eobt,t.entry,p.date);
-  const exitClock=eetClock(p.eobt,t.exit,p.date);
+  const entryClock=t.entry==='EOBT'?{time:p.eobt||'REVIEW',date:p.date,valid:true}:eetClock(p.eobt,t.entry,p.date);
+  const exitClock=t.exit==='EOBT'?{time:p.eobt||'REVIEW',date:p.date,valid:true}:eetClock(p.eobt,t.exit,p.date);
   return {
    entry:c.entry,exit:c.exit,
    entryTime:entryClock.time,exitTime:exitClock.time,
