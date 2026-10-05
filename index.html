@@ -117,7 +117,7 @@ const RULES={
  NEPAL:{name:"Nepal",firs:["VNSM"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Nepal as a 72-hour overflight permit.",source:"UPS operational permit playbook",handler:"UPS / operational permit process",action:"Use applicable UPS permit request process"},
  NORTH_KOREA:{name:"North Korea",firs:["ZKKP"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
  OMAN:{name:"Oman",firs:["OOMM"],status:"YES",validity:"48 hours",entryExit:true,note:"UPS operational permit playbook lists Oman as a 48-hour overflight permit handled through Prime Trip Support. This is the UPS operational window used for scheduled permit planning.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
- PAKISTAN:{name:"Pakistan",firs:["OPKR"],status:"YES",validity:"48 hours",entryExit:true,note:"UPS operational permit playbook lists Pakistan as a 48-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
+ PAKISTAN:{name:"Pakistan",firs:["OPLR","OPKR"],status:"YES",validity:"48 hours",entryExit:true,note:"UPS operational permit playbook lists Pakistan as a 48-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  PHILIPPINES:{name:"Philippines",firs:["RPHI"],status:"YES",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists the Philippines as a 24-hour overflight permit. UPS normally obtains this itself, with Prime Trip Support used on weekends when needed.",source:"UPS operational permit playbook",handler:"UPS / Prime weekend",action:"Use Country Aircom template; Prime may assist on weekends"},
  QATAR:{name:"Qatar",firs:["OTDF"],status:"CONDITIONAL",validity:"Per scheduled authorization / traffic rights",entryExit:true,note:"QCAA’s current flight-clearance portal explicitly covers civil non-scheduled flights and says it is for non-scheduled operations only. QCAA separately manages regular airline schedules and changes under the applicable air transport agreements. Therefore the non-scheduled overflight-permit process should not be applied to a delayed UPS scheduled transit; verify the applicable scheduled traffic-rights/authorization and any schedule-change condition.",source:"QCAA current Non-Scheduled Flights Service + Airline Companies scheduled-service framework"},
  SAUDI_ARABIA:{name:"Saudi Arabia",firs:["OEJD","OERK"],status:"YES",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Saudi Arabia as a 24-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
@@ -131,10 +131,10 @@ const RULES={
  TAJIKISTAN:{name:"Tajikistan",firs:["UTDD"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Tajikistan as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  THAILAND:{name:"Thailand",firs:["VTBB"],status:"YES",landingStatus:"YES",landingNote:"Landing/takeoff permit applies for Thailand; BKK operations handles the landing authorization.",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Thailand as a 24-hour overflight permit for overflight only. BKK takeoff/landing operations are handled separately by UPS. Prime Trip Support handles overflight permit requests.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  TIMOR_LESTE:{name:"Timor-Leste",firs:["WAAF"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
- TURKEY:{name:"Türkiye",firs:["LTAA"],status:"NO",validity:"No Ad Hoc overflight permit; Item 18 statement required",entryExit:true,note:"UPS operational permit playbook lists Turkey among countries that do not require permits, but the flight plan must include a GENERAL CARGO FLIGHT statement in Item 18.",source:"UPS operational permit playbook",handler:"FPL / operational requirement",action:"No overflight permit; add GENERAL CARGO FLIGHT in Item 18"},
- TURKMENISTAN:{name:"Turkmenistan",firs:["UTAA"],status:"YES",validity:"96 hours",entryExit:true,note:"UPS operational permit playbook lists Turkmenistan as a 96-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
+ TURKEY:{name:"Türkiye",firs:["LTAA","LTBB"],status:"NO",validity:"No Ad Hoc overflight permit; Item 18 statement required",entryExit:true,note:"UPS operational permit playbook lists Turkey among countries that do not require permits, but the flight plan must include a GENERAL CARGO FLIGHT statement in Item 18.",source:"UPS operational permit playbook",handler:"FPL / operational requirement",action:"No overflight permit; add GENERAL CARGO FLIGHT in Item 18"},
+ TURKMENISTAN:{name:"Turkmenistan",firs:["UTAV","UTAA"],status:"YES",validity:"96 hours",entryExit:true,note:"UPS operational permit playbook lists Turkmenistan as a 96-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  UAE:{name:"United Arab Emirates",firs:["OMAE"],status:"NO",validity:"No ad hoc permit for regular UPS overflight",entryExit:true,note:"UPS operational permit playbook states that UAE is not required for regular UPS flights; UAE handling is only needed for CMB flights. Do not apply charter/non-scheduled permit requirements to a normal UPS overflight.",source:"UPS operational permit playbook",handler:"No action for regular UPS",action:"CMB flights only"},
- UZBEKISTAN:{name:"Uzbekistan",firs:["UTTT"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Uzbekistan as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
+ UZBEKISTAN:{name:"Uzbekistan",firs:["UZSD","UTTT"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Uzbekistan as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  VIETNAM:{name:"Vietnam",firs:["VVVV","VVHM","VVHN"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Vietnam as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  YEMEN:{name:"Yemen",firs:["OYSC"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Current Ad Hoc permit rule requires verification.",source:"AIP/CAA review required"},
  ALBANIA:{name:"Albania",firs:["LAAA"],status:"NO",validity:"No ad hoc permit",entryExit:true,note:"UPS operational permit playbook lists Albania among countries that do not require permits for scheduled UPS ad hoc operations.",source:"UPS operational permit playbook"},
@@ -208,11 +208,27 @@ function routeCountryOverrides(p){
  if(/\b(?:LINSO|ANSOS|LSO|A201|A599)\b/.test(r))out.push('MYANMAR');
  if(/\b(?:TEBUL|AGARTALA|A201)\b/.test(r))out.push('BANGLADESH');
  if(p.origin==='RCTP'||p.destination==='RCTP'||/\b(?:RCAA|HLG|MOLKA|POTIB|TNN|TONGA|PILOX)\b/.test(r))out.push('TAIWAN');
- if(p.destination==='VIDP'||/\b(?:LKN|JAL)\b/.test(r))out.push('INDIA');
+ if(p.destination==='VIDP'||p.origin==='VIDP'||/\b(?:LKN|JAL|OROTI|ASARI|SULOM)\b/.test(r))out.push('INDIA');
+ if(/\b(?:SULOM|INDEK|NONIB|PS|MOTMO)\b/.test(r))out.push('PAKISTAN');
+ if(/\b(?:FIRUZ|VAJEN|DAROW)\b/.test(r))out.push('TAJIKISTAN');
+ if(/\b(?:BUTRA|USETU|OGNOB|TOLIB|BUPOR|REGMO)\b/.test(r))out.push('UZBEKISTAN');
+ if(/\b(?:POGON|RINIB)\b/.test(r))out.push('TURKMENISTAN');
+ if(/\b(?:RODAR|AMOKU|ABROD|ERLEV|EDELU|SUBUT)\b/.test(r))out.push('AZERBAIJAN');
+ if(/\b(?:MATAL)\b/.test(r))out.push('ARMENIA');
+ if(/\b(?:REBLO|DELEL|EVGEG|ASBEP)\b/.test(r))out.push('TURKEY');
+ if(/\b(?:ODERO)\b/.test(r))out.push('BULGARIA');
+ if(/\b(?:ROSIORI|OPT|ULMIN|DEGET)\b/.test(r))out.push('ROMANIA');
+ if(/\b(?:VEBOS|BEGLA)\b/.test(r))out.push('HUNGARY');
+ if(/\b(?:STOCKERAU|STO|DITIS)\b/.test(r))out.push('AUSTRIA');
+ if(/\b(?:RAPET|MASEK)\b/.test(r))out.push('CZECH_REPUBLIC');
+ if(/\b(?:UVANO|BATEB|ERNEP)\b/.test(r))out.push('GERMANY');
  return out;
 }
 function countryList(p){
- const found=[...new Set([...detectFirs(p),...routeCountryOverrides(p)])];
+ const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
+ const destinationCountryName=destinationCountry(String(p.destination||'').toUpperCase());
+ const endpointCountries=[originCountry,destinationCountryName].filter(Boolean);
+ const found=[...new Set([...endpointCountries,...detectFirs(p),...routeCountryOverrides(p)])];
  const eet=String(p.eet||'').toUpperCase();
  const route=String(p.route||'').toUpperCase();
  const chinaFirs=(RULES.CHINA.firs||[]).filter(x=>x!=="ZJSA");
@@ -221,7 +237,6 @@ function countryList(p){
  const anchors=parseEetAnchors(eet);
  const routeTokensLocal=route.split(/\\s+/).filter(Boolean).map(t=>t.split('/')[0]);
 
- const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
  const orderIndex=country=>{
   if(country===originCountry) return -100000;
 
