@@ -193,7 +193,7 @@ function parseFpl(raw){
  const routePart=(s.match(/-[A-Z]\d{3,4}F\d{3,4}\s(.+?)\s-[A-Z]{4}\d{4}/)||['',''])[1]||'';
  const eet=(s.match(/EET\/([^\)]+)/)||[,''])[1]||'';
  const aircraft=(s.match(/-([A-Z0-9]{4})\//)||[,''])[1]||'';
- return {...p,aircraft,route:routePart,eet};
+ return {...p,aircraft,route:routePart,eet,raw:String(raw||'')};
 }
 function detectFirs(p){
  const all=(p.eet+' '+p.route).toUpperCase();
@@ -521,6 +521,32 @@ function crossingPatternsFor(country,p){
  );
 }
 
+function ofpFirBoundaryFor(country,p){
+ const firSet=new Set(RULES[country]?.firs||[]);
+ const raw=String(p.raw||'');
+ if(!raw||!firSet.size)return null;
+ const lines=raw.split(/\\r?\\n/);
+ const sections=[];
+ for(let i=0;i<lines.length;i++){
+  const m=lines[i].match(/FIR\\/([A-Z0-9]{2,6})/i);
+  if(!m||!firSet.has(m[1].toUpperCase()))continue;
+  const fir=m[1].toUpperCase();
+  const points=[];
+  for(let j=i+1;j<lines.length;j++){
+   if(/FIR\\/[A-Z0-9]{2,6}/i.test(lines[j]))break;
+   const pm=lines[j].match(/\\b([A-Z][A-Z0-9]{2,5})\\s+[EW]\\d{3}/);
+   if(pm)points.push(pm[1].toUpperCase());
+  }
+  if(points.length)sections.push({fir,points});
+ }
+ if(!sections.length)return null;
+ return {
+  firstFir:sections[0].fir,
+  lastFir:sections[sections.length-1].fir,
+  entry:sections[0].points[0],
+  exit:sections[sections.length-1].points[sections[sections.length-1].points.length-1]
+ };
+}
 function crossingFor(country,p){
  // The departure country is not an overflight-permit entry point.
  // A flight originating in the country starts inside that country's airspace, so
@@ -546,6 +572,22 @@ function crossingFor(country,p){
   const ec=t.entry==='EOBT'?{time:p.eobt||'REVIEW'}:t.entry?eetClock(p.eobt,t.entry,p.date):{time:'REVIEW'};
   const xc=t.exit==='EOBT'?{time:p.eobt||'REVIEW'}:t.exit?eetClock(p.eobt,t.exit,p.date):{time:'REVIEW'};
   return {entry:c.entry,exit:c.exit,entryTime:ec.time,exitTime:xc.time,confidence:pattern.source};
+ }
+ const auto=ofpFirBoundaryFor(country,p);
+ if(auto){
+  const anchors=parseEetAnchors(p.eet||'');
+  const entryAnchor=anchors.find(a=>a.fir===auto.firstFir);
+  const exitAnchor=[...anchors].reverse().find(a=>a.fir===auto.lastFir);
+  const entryTime=entryAnchor?eetClock(p.eobt,entryAnchor.time,p.date).time:'REVIEW';
+  const exitTime=exitAnchor?eetClock(p.eobt,exitAnchor.time,p.date).time:'REVIEW';
+  const originIsCountry=country===originCountry;
+  return {
+   entry:originIsCountry?'—':auto.entry,
+   exit:auto.exit,
+   entryTime:originIsCountry?(p.eobt||'—'):entryTime,
+   exitTime,
+   confidence:'OFP FIR section • '+auto.firstFir+(auto.firstFir!==auto.lastFir?' → '+auto.lastFir:'')
+  };
  }
  const firs=RULES[country]?.firs||[],anchors=parseEetAnchors(p.eet||'');
  const hits=anchors.map((x,i)=>({x,i})).filter(x=>firs.includes(x.x.fir));
