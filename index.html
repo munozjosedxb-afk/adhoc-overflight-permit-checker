@@ -306,6 +306,12 @@ const CROSSING_PATTERNS=[
    VIETNAM:{entry:'1135',exit:'1139'}
   }
  },
+ {id:'UPS166_WSSS_VTBS',origin:'WSSS',destination:'VTBS',
+  routeIncludes:['VMR','B469','VPK','M751','VKB','M644','ALUMO','Y12','ALEMI','TUMGA'],
+  source:'SOURCE-VERIFIED UPS166 OFP + confirmed Thailand entry fix',
+  crossings:{THAILAND:{entry:'ABTOK',exit:'VTBS'}},
+  eet:{THAILAND:{entry:'0125',exit:'0206'}}
+ },
  {id:'UPS29_VOBL_EDDK',origin:'VOBL',destination:'EDDK',
   routeIncludes:['VAGPU','AGELA','PARAR','TULBU','TOKRA','PASUM','TANSA'],
   source:'SOURCE-VERIFIED UPS29 OFP',
@@ -421,13 +427,21 @@ function landingStatus(country,p){
  return {status:'REVIEW',reason:'Landing/takeoff permit treatment not separately verified'};
 }
 function landingBlock(country,p){
- const l=landingStatus(country,p), airport=country===destinationCountry(p.destination)?p.destination:country===destinationCountry(p.origin)?p.origin:'';
- return {...l,airport,operation:airport===p.destination?'LANDING':'TAKEOFF'};
+ const l=landingStatus(country,p), landing=country===destinationCountry(p.destination), takeoff=country===destinationCountry(p.origin);
+ const x=permitBlock(country,p);
+ return {...l,operation:landing?'LANDING':takeoff?'TAKEOFF':'TRANSIT',airport:landing?p.destination:takeoff?p.origin:'',entry:landing?x.entry:x.entry,exit:landing?p.destination:x.exit,entryTime:landing?x.entryTime:(p.eobt||'REVIEW'),exitTime:landing?x.exitTime:x.exitTime};
+}
+function landingAirways(p){
+ const route=String(p.route||'').toUpperCase();
+ return [...new Set(route.match(/\b(?:[A-Z]{1,2}\d{1,4})\b/g)||[])]
+   .filter(x=>!/^N\d{3,4}$/.test(x))
+   .join(' ')||'REVIEW';
 }
 function landingEmailFor(country,p){
  const l=landingBlock(country,p),date=fmtDate(p.date),depDay=weekdayNum(p.date),arr=addEet(p.eobt,p.eetTotal,p.date),arrDay=weekdayNum(arr.date),num=p.callsign.replace(/^UPS/i,'');
- const time=l.operation==='LANDING'?arr.time:(p.eobt||'REVIEW'),day=l.operation==='LANDING'?(arrDay||'REVIEW'):(depDay||'REVIEW');
- return 'Subject: FLIGHT PERMIT REQUEST – UPS '+num+' – '+date+'\n\nHello,\n\nPlease arrange the required '+l.operation.toLowerCase()+' permit for the following:\n\nUPS '+num+'  '+(p.origin||'[ORIGIN]')+'  '+(p.eobt||'REVIEW')+' DAY '+(depDay||'REVIEW')+'  '+(p.destination||'[DEST]')+'  '+arr.time+' DAY '+(arrDay||'REVIEW')+'  '+date+'  '+(p.aircraft||'[ACFT]')+'\n\n'+(l.operation==='LANDING'?'LANDING AIRPORT':'DEPARTURE AIRPORT')+'  '+(l.airport||'REVIEW')+'  AT  '+time+' UTC DAY '+day+'\n\nFLIGHT LEVEL '+(p.level||'REVIEW')+'\n\nPlease advise permit number when available.\n\nThank you,\n\nUPS FLIGHT CONTROL';
+ const time=l.operation==='LANDING'?l.exitTime:(p.eobt||'REVIEW');
+ const day=l.operation==='LANDING'?(arrDay||'REVIEW'):(depDay||'REVIEW');
+ return 'Subject: FLIGHT PERMIT REQUEST – UPS '+num+' – '+date+'\n\nHello,\n\nPlease arrange the required '+l.operation.toLowerCase()+' permit for the following:\n\nUPS '+num+'  '+(p.origin||'[ORIGIN]')+'  '+(p.eobt||'REVIEW')+' DAY '+(depDay||'REVIEW')+'  '+(p.destination||'[DEST]')+'  '+arr.time+' DAY '+(arrDay||'REVIEW')+'  '+date+'  '+(p.aircraft||'[ACFT]')+'\n\nENTRY POINT  '+l.entry+'  AT  '+(l.operation==='LANDING'?l.entryTime:(p.eobt||'REVIEW'))+' EXIT POINT  '+l.exit+'  AT  '+time+'\n\nAIRWAY '+landingAirways(p)+' FLIGHT LEVEL '+(p.level||'REVIEW')+'\n\nPlease advise permit number when available.\n\nThank you,\n\nUPS FLIGHT CONTROL';
 }
 
 function render(){
@@ -440,7 +454,7 @@ function render(){
  const permits=countries.filter(c=>{const r=RULES[c];return r.status==='YES'||r.status==='CONDITIONAL';}).length,review=countries.filter(c=>RULES[c].status==='REVIEW').length;
  byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Countries',countries.length],['Overflight / Review',permits+' / '+review]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
  byId('route').textContent=(p.route||'No route parsed')+(window.routeWarning?'\n\n⚠ '+window.routeWarning:''); byId('fplMeta').innerHTML=[['EOBT',p.eobt||'REVIEW'],['EET',p.eetTotal||'REVIEW'],['FL',p.level||'REVIEW'],['DOF',p.date||'REVIEW'],['REG',p.reg||'REVIEW']].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
- byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...RULES[c],status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':RULES[c].status},x=permitBlock(c,p),l=landingBlock(c,p);return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(l.status==='YES'?'yes':l.status==='REVIEW'?'review':'na')+'">'+l.status+'</span><br><span class="source">'+(l.airport?l.operation+' '+l.airport:l.reason)+'</span></td><td>'+r.validity+'</td><td>'+((r.handler||'—')+'<br><span class="source">'+(r.action||'')+'</span>')+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.entryTime+' / '+x.exitTime+' • '+x.confidence+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td>'+((r.status==='YES'||r.status==='CONDITIONAL')?'<button class="btn small" onclick="showEmail(\\''+c+'\\')">EMAIL</button>':'—')+'</td></tr>'}).join(''):'<tr><td colspan="9">No Asia FIR/country match detected. Manual route review still recommended.</td></tr>';
+ byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...RULES[c],status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':RULES[c].status},x=permitBlock(c,p),l=landingBlock(c,p);return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(l.status==='YES'?'yes':l.status==='REVIEW'?'review':'na')+'">'+l.status+'</span><br><span class="source">'+(l.airport?l.operation+' '+l.airport:l.reason)+'</span></td><td>'+r.validity+'</td><td>'+((r.handler||'—')+'<br><span class="source">'+(r.action||'')+'</span>')+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.entryTime+' / '+x.exitTime+' • '+x.confidence+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td>'+((r.status==='YES'||r.status==='CONDITIONAL')?'<button class="btn small" onclick="showEmail(\\''+c+'\\')">OVF EMAIL</button>':'—')+' '+(l.status==='YES'?'<button class="btn small" onclick="showLandingEmail(\\''+c+'\\')">T/L EMAIL</button>':'')+'</td></tr>'}).join(''):'<tr><td colspan="9">No Asia FIR/country match detected. Manual route review still recommended.</td></tr>';
 }
 window.showEmail=function(c){byId('email').textContent=emailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}\nwindow.showLandingEmail=function(c){byId('email').textContent=landingEmailFor(c,window.currentParsed);byId('emailCard').classList.remove('hidden');byId('emailCard').scrollIntoView({behavior:'smooth'})}
 byId('check').onclick=render;
