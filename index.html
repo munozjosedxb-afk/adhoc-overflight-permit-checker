@@ -199,7 +199,7 @@ function countryList(p){
  // UPS operational exception: ZJ/Sanya FIR-only over-water transit does not require a China permit.
  const chinaFirs=(RULES.CHINA.firs||[]).filter(x=>x!=="ZJSA");
  const chinaOther=chinaFirs.some(x=>new RegExp('(?:^|\\s)'+x+'(?:\\d{4}\\b|\\b)').test(eet+' '+route));
- if(found.includes('CHINA') && /\bZJSA\b/.test(eet) && !chinaOther) found.splice(found.indexOf('CHINA'),1);
+ if(found.includes('CHINA') && /(?:^|\s)ZJSA\d{4}\b/.test(eet) && !chinaOther) found.splice(found.indexOf('CHINA'),1);
  return found;
 }
 function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+' '+['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][Number(d.slice(2,4))-1]+' 20'+d.slice(0,2):'[DATE]'}
