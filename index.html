@@ -681,7 +681,7 @@ function crossingFor(country,p){
    entry:lastFix,
    exit:destinationIcao,
    entryTime:lastEet,
-   exitTime:'REVIEW',
+   exitTime:addEet(p.eobt,p.eetTotal,p.date).time||'REVIEW',
    confidence:auto
     ? 'Last OFP fix → arrival airport • '+auto.firs.join(' → ')
     : pattern
