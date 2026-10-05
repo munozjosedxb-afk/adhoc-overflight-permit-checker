@@ -613,11 +613,15 @@ function ofpFirBoundaryFor(country,p){
   firstFir:first.fir,
   lastFir:last.fir,
   firs:sections.map(s=>s.fir),
+  firstFix:first.points[0].name,
+  firstFixEet:first.points[0].eet||null,
+  lastFix:last.points[last.points.length-1].name,
+  lastFixEet:last.points[last.points.length-1].eet||null,
   entry:entryPoint.name,
   exit:exitPoint.name,
   entryEet:entryPoint.eet||null,
   exitEet:exitPoint.eet||null
- };
+ }
 }
 function crossingFor(country,p){
  // The departure country is not an overflight-permit entry point.
