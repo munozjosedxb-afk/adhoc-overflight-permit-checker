@@ -236,10 +236,17 @@ function countryList(p){
   TAIWAN:['RCAA','HLG','MOLKA','POTIB','TNN','TONGA','PILOX'],
   INDIA:['LKN','JAL']
  };
+ const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
  const orderIndex=country=>{
-  if(country===destinationCountry(String(p.origin||'').toUpperCase())) return -100000;
+  // Always put the country of departure first. The flight starts inside that
+  // country, so it is the first country in the operational sequence even when
+  // the departure FIR is not present as an EET anchor.
+  if(country===originCountry) return -100000;
+  // For every other country, use the earliest verified FIR anchor on the route.
+  // This preserves actual geographic/operational order instead of RULES object order.
   const ai=anchors.findIndex(a=>(RULES[country]?.firs||[]).includes(a.fir));
   if(ai>=0) return ai;
+  // If no FIR EET anchor is available, use the earliest known route fix.
   const ri=routeTokens.findIndex(t=>(overrideFixes[country]||[]).includes(t));
   return ri>=0 ? 10000+ri : 50000;
  };
