@@ -476,7 +476,7 @@ function emailFor(country,p){
  const x=permitBlock(country,p),arr=addEet(p.eobt,p.eetTotal,p.date),depDay=weekdayNum(p.date),arrDay=weekdayNum(arr.date);
  const airways=[...new Set((p.route||'').match(/\b[A-Z]\d{1,4}\b/g)||[])].join(' ')||'REVIEW';
  const fl=p.level||'REVIEW',date=fmtDate(p.date),dep=p.origin||'[ORIGIN]',dst=p.destination||'[DEST]',num=p.callsign.replace(/^UPS/i,'');
- return 'Subject: FLIGHT PERMIT REQUEST – UPS '+num+' – '+date+'\\n\\nHello,\\n\\nPlease arrange the required flight permit for the following:\\n\\nUPS '+num+'  '+dep+'  '+(p.eobt||'REVIEW')+' DAY '+(depDay||'REVIEW')+'  '+dst+'  '+arr.time+' DAY '+(arrDay||'REVIEW')+'  '+date+'  '+(p.aircraft||'[ACFT]')+'\\n\\nENTRY POINT  '+x.entry+'  AT  '+x.entryTime+' EXIT POINT  '+x.exit+'  AT  '+x.exitTime+'\\n\\nAIRWAY '+airways+' FLIGHT LEVEL '+fl+'\\n\\nPlease advise permit number when available.\\n\\nThank you,\\n\\nUPS FLIGHT CONTROL';
+ return 'Subject: FLIGHT PERMIT REQUEST – UPS '+num+' – '+date+'\n\nHello,\n\nPlease arrange the required flight permit for the following:\n\nUPS '+num+'  '+dep+'  '+(p.eobt||'REVIEW')+' DAY '+(depDay||'REVIEW')+'  '+dst+'  '+arr.time+' DAY '+(arrDay||'REVIEW')+'  '+date+'  '+(p.aircraft||'[ACFT]')+'\n\nENTRY POINT  '+x.entry+'  AT  '+x.entryTime+' EXIT POINT  '+x.exit+'  AT  '+x.exitTime+'\n\nAIRWAY '+airways+' FLIGHT LEVEL '+fl+'\n\nPlease advise permit number when available.\n\nThank you,\n\nUPS FLIGHT CONTROL';
 }
 function permitValidityStatus(country,issuedAt,revisedEobt){
  const r=RULES[country]||{};
