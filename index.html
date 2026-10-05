@@ -206,6 +206,20 @@ function pill(r){const cls=r.status==='YES'?'yes':r.status==='NO'?'na':'review';
  This keeps the resolver generic while preventing it from inventing boundary fixes.
 */
 const CROSSING_PATTERNS=[
+ {id:'UPS11_RKSI_VIDP',origin:'RKSI',destination:'VIDP',
+  routeIncludes:['BOPTA','PONIK','LAMEN','MADUK','LEGIV','ADGOL','IDGAG','QNX','XISLI','SGM','LINSO','LSO','ANSOS','TEBUL','AGARTALA','BOGEP','RAJSHAHI','TEBID','PATNA','BODOG','LKN','JAL'],
+  source:'SOURCE-VERIFIED UPS11 OFP',
+  crossings:{
+   MYANMAR:{entry:'LINSO',exit:'LSO'},
+   BANGLADESH:{entry:'BOGEP',exit:'RAJ'},
+   INDIA:{entry:'LKN',exit:'JAL'}
+  },
+  eet:{
+   MYANMAR:{entry:'0401',exit:'0409'},
+   BANGLADESH:{entry:'0458',exit:'0510'},
+   INDIA:{entry:'0604',exit:'0615'}
+  }
+ },
  {id:'UPS29_VOBL_EDDK',origin:'VOBL',destination:'EDDK',
   routeIncludes:['VAGPU','AGELA','PARAR','TULBU','TOKRA','PASUM','TANSA'],
   source:'SOURCE-VERIFIED UPS29 OFP',
