@@ -49,23 +49,21 @@ textarea,input{width:100%;background:#09111e;color:#eaf1ff;border:1px solid #2b3
    fpl-parser.js late/stale/404. The external parser remains the primary source. */
 if(typeof parseCoreFpl!=='function'){
  function parseCoreFpl(raw){
-  const s=String(raw||'').replace(/\\s+/g,' ').trim();
-  const callsign=(s.match(/\\(FPL-([A-Z0-9/]+)-/i)||[])[1]||'');
-  const origin=(s.match(/-([A-Z]{4})(\\d{4})(?:\\s|$)/i)||[])[1]||'';
-  const eobt=(s.match(/-([A-Z]{4})(\\d{4})(?:\\s|$)/i)||[])[2]||'';
-  const routeStart=s.match(/-([A-Z]\\d{3,4}F\\d{3,4})\\s/i);
-  const destination=(s.match(/\\s-([A-Z]{4})(\\d{4})(?:\\s|$)/i)||[])[1]||'';
-  const eetTotal=(s.match(/\\s-([A-Z]{4})(\\d{4})(?:\\s|$)/i)||[])[2]||'';
+  const s=String(raw||'').replace(/\s+/g,' ').trim();
+  const callsign=(s.match(/\(FPL-([A-Z0-9/]+)-/i)||[])[1]||'';
+  const om=s.match(/-([A-Z]{4})(\d{4})(?:\s|$)/i)||[];
+  const origin=om[1]||'', eobt=om[2]||'';
+  const routeStart=s.match(/-([A-Z]\d{3,4}F\d{3,4})\s/i);
+  const dm=s.match(/\s-([A-Z]{4})(\d{4})(?:\s|$)/i)||[];
+  const destination=dm[1]||'', eetTotal=dm[2]||'';
   if(!callsign||!origin||!eobt||!routeStart||!destination) return {valid:false};
-  const date=(s.match(/DOF\\/(\\d{6})/i)||[])[1]||'';
-  const reg=(s.match(/REG\\/([A-Z0-9-]+)/i)||[])[1]||'';
+  const date=(s.match(/DOF\/(\d{6})/i)||[])[1]||'';
+  const reg=(s.match(/REG\/([A-Z0-9-]+)/i)||[])[1]||'';
   const sp=routeStart[1];
-  const speed=sp.match(/^([A-Z]\\d{3,4})/i)?.[1]||'';
-  const level=sp.match(/F\\d{3,4}$/i)?.[0]||'';
-  return {valid:true,callsign,origin,eobt,speed,level,destination,eetTotal,eta:eetTotal,date,reg};
+  return {valid:true,callsign,origin,eobt,speed:(sp.match(/^[A-Z]\d{3,4}/i)||[])[0]||'',level:(sp.match(/F\d{3,4}$/i)||[])[0]||'',destination,eetTotal,eta:eetTotal,date,reg};
  }
  function parseEetAnchors(eet){
-  return String(eet||'').split(/\\s+/).map(x=>{const m=x.match(/^([A-Z0-9]{3,5})(\\d{4})$/);return m?{fir:m[1],time:m[2]}:null}).filter(Boolean);
+  return String(eet||'').split(/\s+/).map(x=>{const m=x.match(/^([A-Z0-9]{3,5})(\d{4})$/);return m?{fir:m[1],time:m[2]}:null}).filter(Boolean);
  }
  function interpolateEetTime(anchorA,anchorB,fraction){
   if(!anchorA||!anchorB)return 'REVIEW';
