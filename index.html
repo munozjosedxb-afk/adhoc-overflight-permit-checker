@@ -380,7 +380,7 @@ const CROSSING_PATTERNS=[
   routeIncludes:['CHALI','MKG','KADLO','KAPLI','MADRU','SULUX','IGLEG','IKELA','DAN','POTEV','UBL','TANEK','DWI','LULDA','LADER','PPB','MMV','XIVIL'],
   source:'SOURCE-VERIFIED UPS506 RCTP-VOBL OFP',
   crossings:{
-   TAIWAN:{entry:'RCTP',exit:'ELATO'},
+   TAIWAN:{entry:'RCTP',exit:'KAPLI'},
    VIETNAM:{entry:'BUNTA',exit:'TANNA'},
    LAOS:{entry:'PAPRA',exit:'BUTRA'},
    THAILAND:{entry:'POTEV',exit:'TANEK'},
@@ -448,12 +448,25 @@ function routeContainsInOrder(route,required){
 
 function crossingPatternFor(country,p){
  const r=routeTokens(p), origin=String(p.origin||'').toUpperCase(), destination=String(p.destination||'').toUpperCase();
- return CROSSING_PATTERNS.find(pattern=>
+ const exact=CROSSING_PATTERNS.find(pattern=>
    (!pattern.origin||pattern.origin===origin) &&
    (!pattern.destination||pattern.destination===destination) &&
    routeContainsInOrder(r,pattern.routeIncludes) &&
    pattern.crossings?.[country]
- )||null;
+ );
+ if(exact)return exact;
+
+ // Some verified patterns start inside the country, so the departure airport is
+ // not present in the route token list. For those patterns, accept the verified
+ // origin/destination pair when the named country exit/entry fix itself is present.
+ // This prevents a valid RCTP-origin Taiwan crossing from falling back to REVIEW
+ // merely because a SID/transition token changed.
+ return CROSSING_PATTERNS.find(pattern=>{
+   if(pattern.origin!==origin||pattern.destination!==destination||!pattern.crossings?.[country])return false;
+   const c=pattern.crossings[country];
+   const fixes=[c.entry,c.exit].filter(x=>x&&x!==origin&&x!==destination);
+   return fixes.length>0 && fixes.every(x=>r.includes(String(x).toUpperCase()));
+ })||null;
 }
 
 function crossingPatternsFor(country,p){
