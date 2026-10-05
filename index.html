@@ -212,34 +212,47 @@ function routeCountryOverrides(p){
  return out;
 }
 function countryList(p){
- const found=[...new Set([...detectFirs(p),...routeCountryOverrides(p)])];
+ const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
+ const destinationCountryName=destinationCountry(String(p.destination||'').toUpperCase());
+ const endpointCountries=[originCountry,destinationCountryName].filter(Boolean);
+ const found=[...new Set([...endpointCountries,...detectFirs(p),...routeCountryOverrides(p)])];
  const eet=String(p.eet||'').toUpperCase();
  const route=String(p.route||'').toUpperCase();
  const chinaFirs=(RULES.CHINA.firs||[]).filter(x=>x!=="ZJSA");
  const chinaOther=chinaFirs.some(x=>new RegExp('(?:^|\\s)'+x+'(?:\\d{4}\\b|\\b)').test(eet+' '+route));
  if(found.includes('CHINA') && /(?:^|\\s)ZJSA\\d{4}\\b/.test(eet) && !chinaOther) found.splice(found.indexOf('CHINA'),1);
  const anchors=parseEetAnchors(eet);
- const routeTokens=route.split(/\\s+/).filter(Boolean);
- const overrideFixes={
-  CHINA:['LAMEN','PK','MADUK','LEGIV','ADGOL','IDGAG','QNX','XISLI','SGM'],
-  MYANMAR:['LINSO','ANSOS','LSO'],
-  BANGLADESH:['TEBUL','AGARTALA','BOGEP','RAJ'],
-  TAIWAN:['RCAA','HLG','MOLKA','POTIB','TNN','TONGA','PILOX'],
-  INDIA:['LKN','JAL']
- };
- const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
+ const routeTokensLocal=route.split(/\\s+/).filter(Boolean).map(t=>t.split('/')[0]);
+
  const orderIndex=country=>{
-  // Always put the country of departure first. The flight starts inside that
-  // country, so it is the first country in the operational sequence even when
-  // the departure FIR is not present as an EET anchor.
   if(country===originCountry) return -100000;
-  // For every other country, use the earliest verified FIR anchor on the route.
-  // This preserves actual geographic/operational order instead of RULES object order.
+
+  // Verified route patterns are the primary source for country order. This is
+  // essential when multiple countries share the same FIR (e.g. Myanmar and
+  // India both being represented by VYYF on UPS9).
+  const pattern=typeof crossingPatternFor==='function'?crossingPatternFor(country,p):null;
+  if(pattern?.crossings?.[country]){
+   const c=pattern.crossings[country];
+   const fixes=[c.entry,c.exit].filter(Boolean);
+   const positions=fixes.map(f=>routeTokensLocal.indexOf(String(f).toUpperCase())).filter(i=>i>=0);
+   if(positions.length)return Math.min(...positions);
+  }
+
+  // Fall back to the earliest verified FIR anchor only when no route-specific
+  // crossing pattern is available.
   const ai=anchors.findIndex(a=>(RULES[country]?.firs||[]).includes(a.fir));
-  if(ai>=0) return ai;
-  // If no FIR EET anchor is available, use the earliest known route fix.
-  const ri=routeTokens.findIndex(t=>(overrideFixes[country]||[]).includes(t));
-  return ri>=0 ? 10000+ri : 50000;
+  if(ai>=0)return 1000+ai;
+
+  // Final fallback: known country-specific route fixes.
+  const overrideFixes={
+   CHINA:['LAMEN','PK','MADUK','LEGIV','ADGOL','IDGAG','QNX','XISLI','SGM'],
+   MYANMAR:['LINSO','ANSOS','LSO','TANEK','DWI','LALIT','LULDA'],
+   BANGLADESH:['TEBUL','AGARTALA','BOGEP','RAJ'],
+   TAIWAN:['RCAA','HLG','MOLKA','POTIB','TNN','TONGA','PILOX'],
+   INDIA:['LKN','JAL','LULDA','XIVIL']
+  };
+  const ri=routeTokensLocal.findIndex(t=>(overrideFixes[country]||[]).includes(t));
+  return ri>=0?2000+ri:50000;
  };
  return found.map((country,i)=>({country,i,order:orderIndex(country)}))
   .sort((a,b)=>a.order-b.order||a.i-b.i).map(x=>x.country);
