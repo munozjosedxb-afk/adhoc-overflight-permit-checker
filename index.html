@@ -525,16 +525,16 @@ function ofpFirBoundaryFor(country,p){
  const firSet=new Set(RULES[country]?.firs||[]);
  const raw=String(p.raw||'');
  if(!raw||!firSet.size)return null;
- const lines=raw.split(/\\r?\\n/);
+ const lines=raw.split(/\r?\n/);
  const sections=[];
  for(let i=0;i<lines.length;i++){
-  const m=lines[i].match(/FIR\\/([A-Z0-9]{2,6})/i);
+  const m=lines[i].match(/FIR\/([A-Z0-9]{2,6})/i);
   if(!m||!firSet.has(m[1].toUpperCase()))continue;
   const fir=m[1].toUpperCase();
   const points=[];
   for(let j=i+1;j<lines.length;j++){
    if(/FIR\\/[A-Z0-9]{2,6}/i.test(lines[j]))break;
-   const pm=lines[j].match(/\\b([A-Z][A-Z0-9]{2,5})\\s+[EW]\\d{3}/);
+   const pm=lines[j].match(/\b([A-Z][A-Z0-9]{2,5})\s+[EW]\d{3}/);
    if(pm)points.push(pm[1].toUpperCase());
   }
   if(points.length)sections.push({fir,points});
