@@ -467,13 +467,25 @@ function crossingPatternsFor(country,p){
 }
 
 function crossingFor(country,p){
+ // The departure country is not an overflight-permit entry point.
+ // A flight originating in the country starts inside that country's airspace, so
+ // never show a fabricated/REVIEW entry fix and never generate an OVF request for it.
+ const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
+ const pattern=crossingPatternFor(country,p);
+ if(country===originCountry){
+  if(pattern){
+   const c=pattern.crossings[country],t=pattern.eet?.[country]||{};
+   const xc=t.exit?eetClock(p.eobt,t.exit,p.date):{time:'REVIEW'};
+   return {entry:'—',exit:c.exit,entryTime:p.eobt||'—',exitTime:xc.time,confidence:'Origin country • no OVF entry'};
+  }
+  return {entry:'—',exit:'—',entryTime:p.eobt||'—',exitTime:'—',confidence:'Origin country • no OVF entry'};
+ }
  // Permit validity/action is evaluated once at COUNTRY level. FIR boundaries are never
  // treated as separate permit events. A country may contain several FIRs or the route
  // may re-enter the same FIR; all of those segments belong to the same country permit.
  // Verified route patterns supply named country entry/exit fixes. Otherwise the resolver
  // uses the first and last EET anchors belonging to ANY FIR in that country and keeps
  // boundary fixes REVIEW rather than inventing them.
- const pattern=crossingPatternFor(country,p);
  if(pattern){
   const c=pattern.crossings[country],t=pattern.eet?.[country]||{};
   const ec=t.entry==='EOBT'?{time:p.eobt||'REVIEW'}:t.entry?eetClock(p.eobt,t.entry,p.date):{time:'REVIEW'};
@@ -534,10 +546,24 @@ function permitValidityStatus(country,issuedAt,revisedEobt){
    : {status:'EXPIRED',reason:'Outside verified '+h+' hour validity',expires:expires.toISOString()};
 }
 
-function overflightRule(country,p){const base=RULES[country]||{};const originCountry=destinationCountry(String(p.origin||'').toUpperCase());if(country===originCountry)return {...base,status:"NO",validity:"No OVF permit — flight originates here",handler:"—",action:"No overflight permit request; evaluate takeoff/landing separately",note:"Flight originates in this country. Do not generate a transit overflight permit request for the country of departure; evaluate takeoff/landing authorization separately.",source:"UPS operational routing logic"};return base;}
+function overflightRule(country,p){
+ const base=RULES[country]||{};
+ const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
+ if(country===originCountry)return {
+  ...base,
+  status:"NO",
+  validity:"Not applicable — flight originates here",
+  handler:"—",
+  action:"No overflight permit request",
+  note:"Flight originates in this country. No country-entry point or transit overflight permit request applies.",
+  source:"UPS operational routing logic"
+ };
+ return base;
+}
 function destinationCountry(icao){const m={WSSS:'SINGAPORE',VIDP:'INDIA',VOBL:'INDIA',RPLC:'PHILIPPINES',ZSPD:'CHINA',RKSI:'SOUTH_KOREA',ZGSZ:'CHINA',VVNB:'VIETNAM',VTBS:'THAILAND',VHHH:'HONG_KONG',RCTP:'TAIWAN'};return m[String(icao||'').toUpperCase()]||null;}
 function landingStatus(country,p){
  const r=RULES[country]||{}, oc=country===destinationCountry(p.origin), dc=country===destinationCountry(p.destination);
+ if(oc&&!dc) return {status:'NO',reason:'Origin country — no landing permit check'};
  if(!oc&&!dc) return {status:'NO',reason:'Transit only'};
  if(r.landingStatus==='YES') return {status:'YES',reason:r.landingNote||'Landing/takeoff permit applies'};
  if(r.landingStatus==='NO') return {status:'NO',reason:r.landingNote||'No landing/takeoff permit'};
