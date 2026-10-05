@@ -274,6 +274,26 @@ const CROSSING_PATTERNS=[
    INDIA:{entry:'0604',exit:'0615'}
   }
  },
+ {id:'UPS12_EDDK_RPLC',origin:'EDDK',destination:'RPLC',
+  routeIncludes:['REBLO','MATAL','LARGI','KRS','DSH','SOVOD','DIPAX','ETAVI','KAMUD','DUDIT','TAMOT'],
+  source:'SOURCE-VERIFIED UPS12 OFP',
+  crossings:{
+   ARMENIA:{entry:'REBLO',exit:'MATAL'},
+   AZERBAIJAN:{entry:'MATAL',exit:'LARGI'},
+   TURKMENISTAN:{entry:'LARGI',exit:'SOVOD'},
+   UZBEKISTAN:{entry:'SOVOD',exit:'DIPAX'},
+   KYRGYZSTAN:{entry:'DIPAX',exit:'KAMUD'},
+   CHINA:{entry:'KAMUD',exit:'TAMOT'}
+  },
+  eet:{
+   ARMENIA:{entry:'0334',exit:'0343'},
+   AZERBAIJAN:{entry:'0343',exit:'0413'},
+   TURKMENISTAN:{entry:'0413',exit:'0457'},
+   UZBEKISTAN:{entry:'0457',exit:'0553'},
+   KYRGYZSTAN:{entry:'0553',exit:'0627'},
+   CHINA:{entry:'0627',exit:'1059'}
+  }
+ },
  {id:'UPS29_VOBL_EDDK',origin:'VOBL',destination:'EDDK',
   routeIncludes:['VAGPU','AGELA','PARAR','TULBU','TOKRA','PASUM','TANSA'],
   source:'SOURCE-VERIFIED UPS29 OFP',
