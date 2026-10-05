@@ -221,16 +221,30 @@ function routeCountryOverrides(p){
  return out;
 }
 function countryList(p){
- // One permit decision per COUNTRY, even when the route crosses multiple FIRs or re-enters
- // the same country. FIRs never create separate permit rows or separate permit requests.
  const found=[...new Set([...detectFirs(p),...routeCountryOverrides(p)])];
  const eet=String(p.eet||'').toUpperCase();
  const route=String(p.route||'').toUpperCase();
- // UPS operational exception: ZJ/Sanya FIR-only over-water transit does not require a China permit.
  const chinaFirs=(RULES.CHINA.firs||[]).filter(x=>x!=="ZJSA");
  const chinaOther=chinaFirs.some(x=>new RegExp('(?:^|\\s)'+x+'(?:\\d{4}\\b|\\b)').test(eet+' '+route));
- if(found.includes('CHINA') && /(?:^|\s)ZJSA\d{4}\b/.test(eet) && !chinaOther) found.splice(found.indexOf('CHINA'),1);
- return found;
+ if(found.includes('CHINA') && /(?:^|\\s)ZJSA\\d{4}\\b/.test(eet) && !chinaOther) found.splice(found.indexOf('CHINA'),1);
+ const anchors=parseEetAnchors(eet);
+ const routeTokens=route.split(/\\s+/).filter(Boolean);
+ const overrideFixes={
+  CHINA:['LAMEN','PK','MADUK','LEGIV','ADGOL','IDGAG','QNX','XISLI','SGM'],
+  MYANMAR:['LINSO','ANSOS','LSO'],
+  BANGLADESH:['TEBUL','AGARTALA','BOGEP','RAJ'],
+  TAIWAN:['RCAA','HLG','MOLKA','POTIB','TNN','TONGA','PILOX'],
+  INDIA:['LKN','JAL']
+ };
+ const orderIndex=country=>{
+  if(country===destinationCountry(String(p.origin||'').toUpperCase())) return -100000;
+  const ai=anchors.findIndex(a=>(RULES[country]?.firs||[]).includes(a.fir));
+  if(ai>=0) return ai;
+  const ri=routeTokens.findIndex(t=>(overrideFixes[country]||[]).includes(t));
+  return ri>=0 ? 10000+ri : 50000;
+ };
+ return found.map((country,i)=>({country,i,order:orderIndex(country)}))
+  .sort((a,b)=>a.order-b.order||a.i-b.i).map(x=>x.country);
 }
 function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+' '+['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][Number(d.slice(2,4))-1]+' 20'+d.slice(0,2):'[DATE]'}
 function pill(r){const cls=r.status==='YES'?'yes':r.status==='NO'?'na':'review';return '<span class="pill '+cls+'">'+r.status+'</span>'}
