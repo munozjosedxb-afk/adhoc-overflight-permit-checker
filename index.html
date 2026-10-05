@@ -632,61 +632,56 @@ function crossingFor(country,p){
  const auto=ofpFirBoundaryFor(country,p);
 
  /*
-  FAIL-SAFE FOR LANDING / DEPARTING COUNTRIES:
-  The country crossing object is also used by landing/takeoff permit logic.
-  Therefore, when the country is the departure country, explicitly show:
-      DEPARTURE AIRPORT -> FIRST FIX IN THE COUNTRY FIR
-  and when it is the destination country, explicitly show:
-      LAST FIX IN THE COUNTRY FIR -> ARRIVAL AIRPORT
-  This is intentionally independent of permit status. It prevents the app from
-  treating a landing/takeoff country like a generic transit country.
+  AIRPORT-TO-COUNTRY-FIR DISPLAY LOGIC
+  - Departure country: show DEPARTURE AIRPORT -> FIRST FIX IN THE NEXT COUNTRY'S FIR.
+    The departure country's own FIR fix is intentionally NOT used here.
+  - Destination country: show FIRST FIX IN THE ARRIVING COUNTRY'S FIR -> DESTINATION AIRPORT.
+    This is the first applicable fix in the destination FIR, not the final fix before
+    the airport.
+  - Transit countries continue to use their normal country entry/exit pair.
  */
  if(country===originCountry && country===destinationCountryName){
-  const firstFix=auto?.firstFix||pattern?.crossings?.[country]?.entry||'REVIEW';
-  const lastFix=auto?.lastFix||pattern?.crossings?.[country]?.exit||'REVIEW';
-  const firstEet=auto?.firstFixEet?eetClock(p.eobt,auto.firstFixEet,p.date).time:(p.eobt||'REVIEW');
-  const lastEet=auto?.lastFixEet?eetClock(p.eobt,auto.lastFixEet,p.date).time:'REVIEW';
   return {
    entry:originIcao,
    exit:destinationIcao,
    entryTime:p.eobt||'—',
-   exitTime:lastEet,
+   exitTime:addEet(p.eobt,p.eetTotal,p.date).time||'REVIEW',
    confidence:'Same-country flight • airport to airport'
   };
  }
 
  if(country===originCountry){
-  const firstFix=auto?.firstFix||pattern?.crossings?.[country]?.entry||'REVIEW';
-  const firstEet=auto?.firstFixEet?eetClock(p.eobt,auto.firstFixEet,p.date).time:'REVIEW';
+  const sequence=countryList(p);
+  const idx=sequence.indexOf(country);
+  const nextCountry=idx>=0?sequence[idx+1]:null;
+  const nextAuto=nextCountry?ofpFirBoundaryFor(nextCountry,p):null;
+  const nextPattern=nextCountry?crossingPatternFor(nextCountry,p):null;
+  const nextFix=nextAuto?.entry||nextPattern?.crossings?.[nextCountry]?.entry||'REVIEW';
+  const nextEet=nextAuto?.entryEet||nextPattern?.eet?.[nextCountry]?.entry||null;
   return {
    entry:originIcao,
-   exit:firstFix,
+   exit:nextFix,
    entryTime:p.eobt||'—',
-   exitTime:firstEet,
-   confidence:auto
-    ? 'Departure airport → first OFP fix • '+auto.firs.join(' → ')
-    : pattern
-      ? 'Departure airport → first verified country fix'
-      : 'Departure airport → first FIR fix • REVIEW'
+   exitTime:nextEet?eetClock(p.eobt,nextEet,p.date).time:'REVIEW',
+   confidence:nextCountry
+    ? 'Departure airport → first fix in '+nextCountry+' FIR'
+    : 'Departure airport → next-country FIR fix • REVIEW'
   };
  }
 
  if(country===destinationCountryName){
-  const lastFix=auto?.lastFix||pattern?.crossings?.[country]?.exit||'REVIEW';
-  const lastEet=auto?.lastFixEet?eetClock(p.eobt,auto.lastFixEet,p.date).time:'REVIEW';
-  const arrivalEet=auto?.lastFixEet
-    ? eetClock(p.eobt,auto.lastFixEet,p.date)
-    : {time:'REVIEW'};
+  const firstFix=auto?.entry||pattern?.crossings?.[country]?.entry||'REVIEW';
+  const firstEet=auto?.entryEet||pattern?.eet?.[country]?.entry||null;
   return {
-   entry:lastFix,
+   entry:firstFix,
    exit:destinationIcao,
-   entryTime:lastEet,
+   entryTime:firstEet?eetClock(p.eobt,firstEet,p.date).time:'REVIEW',
    exitTime:addEet(p.eobt,p.eetTotal,p.date).time||'REVIEW',
    confidence:auto
-    ? 'Last OFP fix → arrival airport • '+auto.firs.join(' → ')
+    ? 'First fix in arriving country FIR → destination airport • '+auto.firs.join(' → ')
     : pattern
-      ? 'Last verified country fix → arrival airport'
-      : 'Last FIR fix → arrival airport • REVIEW'
+      ? 'First verified arriving-country FIR fix → destination airport'
+      : 'First arriving-country FIR fix → destination airport • REVIEW'
   };
  }
 
