@@ -630,6 +630,40 @@ function ofpFirBoundaryFor(country,p){
   exitEet:exitPoint.eet||null
  }
 }
+/*
+ NATIONAL-BOUNDARY CHAINING
+ When two consecutive permit countries share a land border, the exit fix
+ of the preceding country is the entry fix for the following country.
+ FIR boundaries are not used as a substitute for national boundaries: ICAO
+ notes that FIRs can include airspace over the high seas, so the chain is
+ applied only to known land-border pairs. Special FIR overlays such as
+ Hong Kong therefore do not break the underlying China → Vietnam chain.
+*/
+const LAND_BORDER_PAIRS=new Set([
+ 'BANGLADESH|INDIA','BANGLADESH|MYANMAR','BHUTAN|CHINA','BHUTAN|INDIA',
+ 'CAMBODIA|LAOS','CAMBODIA|THAILAND','CAMBODIA|VIETNAM',
+ 'CHINA|INDIA','CHINA|LAOS','CHINA|MYANMAR','CHINA|VIETNAM',
+ 'INDIA|MYANMAR','INDIA|NEPAL','INDIA|PAKISTAN',
+ 'LAOS|MYANMAR','LAOS|THAILAND','LAOS|VIETNAM',
+ 'MYANMAR|THAILAND','MYANMAR|VIETNAM'
+]);
+function landBorderPair(a,b){
+ const x=[String(a||'').toUpperCase(),String(b||'').toUpperCase()].sort();
+ return LAND_BORDER_PAIRS.has(x[0]+'|'+x[1]);
+}
+function chainedPredecessor(country,p){
+ const sequence=countryList(p),idx=sequence.indexOf(country);
+ if(idx<=0)return null;
+ for(let i=idx-1;i>=0;i--){
+  const prior=sequence[i];
+  if(!landBorderPair(prior,country))continue;
+  const priorPattern=crossingPatternFor(prior,p);
+  const priorCross=priorPattern?.crossings?.[prior];
+  if(priorCross?.exit)return {country:prior,crossing:priorCross,eet:priorPattern?.eet?.[prior]?.exit||null};
+ }
+ return null;
+}
+
 function crossingFor(country,p){
  const originIcao=String(p.origin||'').toUpperCase();
  const destinationIcao=String(p.destination||'').toUpperCase();
@@ -711,9 +745,20 @@ function crossingFor(country,p){
  // geographic boundary detection. A country may contain multiple FIRs.
  if(pattern){
   const c=pattern.crossings[country],t=pattern.eet?.[country]||{};
-  const ec=t.entry==='EOBT'?{time:p.eobt||'REVIEW'}:t.entry?eetClock(p.eobt,t.entry,p.date):{time:'REVIEW'};
+  const chain=chainedPredecessor(country,p);
+  const chainedEntry=chain?.crossing?.exit||c.entry;
+  const chainedEntryEet=chain?.eet||t.entry||null;
+  const ec=t.entry==='EOBT'&&!chain?{time:p.eobt||'REVIEW'}:chainedEntryEet?eetClock(p.eobt,chainedEntryEet,p.date):{time:'REVIEW'};
   const xc=t.exit==='EOBT'?{time:p.eobt||'REVIEW'}:t.exit?eetClock(p.eobt,t.exit,p.date):{time:'REVIEW'};
-  return {entry:c.entry,exit:c.exit,entryTime:ec.time,exitTime:xc.time,confidence:pattern.source};
+  return {
+   entry:chainedEntry,
+   exit:c.exit,
+   entryTime:ec.time,
+   exitTime:xc.time,
+   confidence:chain
+    ? pattern.source+' • chained national boundary from '+chain.country+' exit'
+    : pattern.source
+  };
  }
  if(auto){
   const entryTime=auto.entryEet?eetClock(p.eobt,auto.entryEet,p.date).time:'REVIEW';
