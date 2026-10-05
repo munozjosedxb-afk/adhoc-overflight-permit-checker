@@ -26,7 +26,7 @@ textarea,input{width:100%;background:#09111e;color:#eaf1ff;border:1px solid #2b3
 <section class="card">
 <label for="fpl">ICAO FLIGHT PLAN</label>
 <textarea id="fpl" placeholder="Paste the complete ICAO FPL here..."></textarea>
-<div class="controls"><button class="btn primary" id="check">CHECK ASIA</button><button class="btn" id="sample">LOAD UPS11 TEST</button><button class="btn" id="clear">CLEAR</button></div>
+<div class="controls"><button class="btn primary" id="check">CHECK FLIGHT PLAN</button><button class="btn" id="sample">LOAD UPS11 TEST</button><button class="btn" id="clear">CLEAR</button></div>
 <div class="hint">Ad Hoc decision support. REVIEW means the current country rule still requires operational verification from the applicable AIP/AIC/CAA.</div>
 </section>
 
@@ -318,7 +318,7 @@ const CROSSING_PATTERNS=[
   eet:{THAILAND:{entry:'0125',exit:'0206'}}
  },
  {id:'UPS54_RCTP_VHHH',origin:'RCTP',destination:'VHHH',
-  routeIncludes:['CHALI','MKG','ELATO','V522','ABBEY'],
+  routeIncludes:['CHALI','ELATO'],
   source:'SOURCE-VERIFIED UPS54 OFP',
   crossings:{
    TAIWAN:{entry:'RCTP',exit:'ELATO'},
