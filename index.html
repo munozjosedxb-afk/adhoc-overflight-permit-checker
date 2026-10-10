@@ -228,6 +228,9 @@ function countryList(p){
  const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
  const destinationCountryName=destinationCountry(String(p.destination||'').toUpperCase());
  const endpointCountries=[originCountry,destinationCountryName].filter(Boolean);
+ // Explicit endpoint guard: EDDK is Cologne/Bonn, Germany. Keep Germany in the
+ // output even if an airport-country lookup is changed or a route has no German FIR anchor.
+ if((String(p.origin||'').toUpperCase()==='EDDK'||String(p.destination||'').toUpperCase()==='EDDK')&&!endpointCountries.includes('GERMANY')) endpointCountries.push('GERMANY');
  const routeFixes=routeTokens(p);
  const routePatternCountries=CROSSING_PATTERNS
   .filter(pattern=>(!pattern.origin||pattern.origin===String(p.origin||'').toUpperCase())&&(!pattern.destination||pattern.destination===String(p.destination||'').toUpperCase())&&routeContainsInOrder(routeFixes,pattern.routeIncludes))
