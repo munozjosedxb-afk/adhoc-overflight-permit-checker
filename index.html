@@ -308,15 +308,27 @@ const CROSSING_PATTERNS=[{id:'UPS15_VIDP_EDDK',origin:'VIDP',destination:'EDDK',
   }
  },
  {id:'UPS20_EDDK_VIDP',origin:'EDDK',destination:'VIDP',
-  routeIncludes:['REBLO','TABAS','MATAL','SUBUT','ERLEV','RODAR','BABUM','POGON'],
+  routeIncludes:['REBLO','TABAS','MATAL','SUBUT','ERLEV','RODAR','BABUM','POGON','BUPOR','OGNOB','USETU','BUTRA','POMIR','FIRUZ','PS','NONIB','INDEK','LA','SULOM','ELKUX'],
   source:'SOURCE-VERIFIED UPS20 OFP',
   crossings:{
+   ARMENIA:{entry:'REBLO',exit:'MATAL'},
    AZERBAIJAN:{entry:'MATAL',exit:'RODAR'},
-   TURKMENISTAN:{entry:'RODAR',exit:'RINIB'}
+   TURKMENISTAN:{entry:'RODAR',exit:'POGON'},
+   UZBEKISTAN:{entry:'POGON',exit:'BUTRA'},
+   TAJIKISTAN:{entry:'BUTRA',exit:'FIRUZ'},
+   AFGHANISTAN:{entry:'FIRUZ',exit:'MOTMO'},
+   PAKISTAN:{entry:'MOTMO',exit:'SULOM'},
+   INDIA:{entry:'SULOM',exit:'VIDP'}
   },
   eet:{
-   AZERBAIJAN:{entry:'0341',exit:'0411'},
-   TURKMENISTAN:{entry:'0411',exit:'0435'}
+   ARMENIA:{entry:'0333',exit:'0343'},
+   AZERBAIJAN:{entry:'0343',exit:'0412'},
+   TURKMENISTAN:{entry:'0412',exit:'0507'},
+   UZBEKISTAN:{entry:'0507',exit:'0531'},
+   TAJIKISTAN:{entry:'0531',exit:'0608'},
+   AFGHANISTAN:{entry:'0608',exit:'0610'},
+   PAKISTAN:{entry:'0610',exit:'0654'},
+   INDIA:{entry:'0654',exit:'0737'}
   }
  },
  {id:'UPS1_VOBL_EDDK',origin:'VOBL',destination:'EDDK',
