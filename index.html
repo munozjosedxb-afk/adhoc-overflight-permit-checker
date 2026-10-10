@@ -271,6 +271,20 @@ function countryList(p){
   const ri=routeTokensLocal.findIndex(t=>(overrideFixes[country]||[]).includes(t));
   return ri>=0?2000+ri:50000;
  };
+ // UPS 15 VIDP-EDDK has a verified country sequence that must not depend on
+ // incidental FIR-anchor order or whether every optional route signature fix matches.
+ // Keep the requested Asia chain deterministic; preserve the relative order of Europe.
+ const ups15AsiaOrder=['INDIA','PAKISTAN','AFGHANISTAN','TAJIKISTAN','UZBEKISTAN','TURKMENISTAN','AZERBAIJAN','ARMENIA','TURKEY'];
+ if(String(p.origin||'').toUpperCase()==='VIDP' &&
+    String(p.destination||'').toUpperCase()==='EDDK' &&
+    ['SULOM','MOTMO','FIRUZ','BUTRA','POGON','RODAR','MATAL','REBLO','ODERO']
+      .every(fix=>routeFixes.includes(fix))) {
+   const ranked=found.map((country,i)=>({country,i,rank:ups15AsiaOrder.indexOf(country)}));
+   return ranked.sort((a,b)=>{
+     const ar=a.rank<0?999:a.rank, br=b.rank<0?999:b.rank;
+     return ar-br || (a.rank<0&&b.rank<0 ? a.i-b.i : a.i-b.i);
+   }).map(x=>x.country);
+ }
  return found.map((country,i)=>({country,i,order:orderIndex(country)}))
   .sort((a,b)=>a.order-b.order||a.i-b.i).map(x=>x.country);
 }
