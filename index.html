@@ -228,7 +228,11 @@ function countryList(p){
  const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
  const destinationCountryName=destinationCountry(String(p.destination||'').toUpperCase());
  const endpointCountries=[originCountry,destinationCountryName].filter(Boolean);
- const found=[...new Set([...endpointCountries,...detectFirs(p),...routeCountryOverrides(p)])];
+ const routeFixes=routeTokens(p);
+ const routePatternCountries=CROSSING_PATTERNS
+  .filter(pattern=>(!pattern.origin||pattern.origin===String(p.origin||'').toUpperCase())&&(!pattern.destination||pattern.destination===String(p.destination||'').toUpperCase())&&routeContainsInOrder(routeFixes,pattern.routeIncludes))
+  .flatMap(pattern=>Object.keys(pattern.crossings||{}));
+ const found=[...new Set([...endpointCountries,...detectFirs(p),...routeCountryOverrides(p),...routePatternCountries])];
  const eet=String(p.eet||'').toUpperCase();
  const route=String(p.route||'').toUpperCase();
  const chinaFirs=(RULES.CHINA.firs||[]).filter(x=>x!=="ZJSA");
