@@ -291,7 +291,7 @@ function countryList(p){
  // UPS 20 EDDK-VIDP is the reverse corridor. Keep European countries in their
  // detected route order, then force the verified Asia sequence to follow the
  // filed route, including Pakistan before destination India at shared SULOM.
- const ups20AsiaOrder=['ARMENIA','AZERBAIJAN','TURKMENISTAN','UZBEKISTAN','TAJIKISTAN','AFGHANISTAN','PAKISTAN','INDIA'];
+ const ups20AsiaOrder=['TURKEY','ARMENIA','AZERBAIJAN','TURKMENISTAN','UZBEKISTAN','TAJIKISTAN','AFGHANISTAN','PAKISTAN','INDIA'];
  if(String(p.origin||'').toUpperCase()==='EDDK' &&
     String(p.destination||'').toUpperCase()==='VIDP' &&
     ['REBLO','MATAL','RODAR','POGON','BUTRA','FIRUZ','SULOM']
@@ -330,6 +330,7 @@ const CROSSING_PATTERNS=[{id:'UPS15_VIDP_EDDK',origin:'VIDP',destination:'EDDK',
   routeIncludes:['REBLO','TABAS','MATAL','SUBUT','ERLEV','RODAR','BABUM','POGON','BUPOR','OGNOB','USETU','BUTRA','POMIR','FIRUZ','PS','NONIB','INDEK','LA','SULOM','ELKUX'],
   source:'SOURCE-VERIFIED UPS20 OFP',
   crossings:{
+   TURKEY:{entry:'ODERO',exit:'REBLO'},
    ARMENIA:{entry:'REBLO',exit:'MATAL'},
    AZERBAIJAN:{entry:'MATAL',exit:'RODAR'},
    TURKMENISTAN:{entry:'RODAR',exit:'POGON'},
