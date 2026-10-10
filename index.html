@@ -27,7 +27,7 @@ textarea,input{width:100%;background:#09111e;color:#eaf1ff;border:1px solid #2b3
 <label for="fpl">ICAO FLIGHT PLAN</label>
 <textarea id="fpl" placeholder="Paste the complete ICAO FPL here..."></textarea>
 <div class="controls"><button class="btn primary" id="check">CHECK FLIGHT PLAN</button><button class="btn" id="clear">CLEAR</button></div>
-<div class="hint">Ad Hoc decision support. REVIEW means the current country rule still requires operational verification from the applicable AIP/AIC/CAA.</div>
+<div class="hint">Ad Hoc decision support. Route-only input supports route/country boundary screening; EOBT/EET and timing will show REVIEW unless supplied in a complete ICAO FPL. REVIEW means operational verification is still required.</div>
 </section>
 
 <section class="card hidden" id="results">
@@ -188,12 +188,25 @@ const RULES={
 
 function byId(id){return document.getElementById(id)}
 function parseFpl(raw){
- const p=parseCoreFpl(raw); if(!p.valid) return p;
+ const p=parseCoreFpl(raw);
  const s=String(raw||'').replace(/\s+/g,' ').trim();
- const routePart=(s.match(/-[A-Z]\d{3,4}F\d{3,4}\s(.+?)\s-[A-Z]{4}\d{4}/)||['',''])[1]||'';
- const eet=(s.match(/EET\/([^\)]+)/)||[,''])[1]||'';
- const aircraft=(s.match(/-([A-Z0-9]{4})\//)||[,''])[1]||'';
- return {...p,aircraft,route:routePart,eet,raw:String(raw||'')};
+ if(p.valid){
+  const routePart=(s.match(/-[A-Z]\d{3,4}F\d{3,4}\s(.+?)\s-[A-Z]{4}\d{4}/)||['',''])[1]||'';
+  const eet=(s.match(/EET\/([^\)]+)/)||[,''])[1]||'';
+  const aircraft=(s.match(/-([A-Z0-9]{4})\//)||[,''])[1]||'';
+  return {...p,aircraft,route:routePart,eet,raw:String(raw||''),inputType:'ICAO FPL'};
+ }
+
+ // Route-only fallback: origin ICAO first, destination ICAO last.
+ // Do not infer EOBT/EET, aircraft or timing from a route-only paste.
+ const tokens=s.toUpperCase().split(/\s+/).filter(Boolean);
+ const isIcao=x=>/^[A-Z]{4}$/.test(x||'');
+ if(tokens.length>=3 && isIcao(tokens[0]) && isIcao(tokens[tokens.length-1])){
+  return {valid:true,callsign:'ROUTE ONLY',origin:tokens[0],destination:tokens[tokens.length-1],
+   eobt:'REVIEW',speed:'',level:'REVIEW',aircraft:'REVIEW',eetTotal:'REVIEW',eta:'REVIEW',
+   date:'',reg:'',route:tokens.slice(1,-1).join(' '),eet:'',raw:String(raw||''),inputType:'Route only'};
+ }
+ return {valid:false};
 }
 function detectFirs(p){
  const all=(p.eet+' '+p.route).toUpperCase();
