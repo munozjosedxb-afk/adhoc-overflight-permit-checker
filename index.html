@@ -859,7 +859,7 @@ function overflightRule(country,p){
  };
  return base;
 }
-function destinationCountry(icao){const m={WSSS:'SINGAPORE',VIDP:'INDIA',VOBL:'INDIA',RPLC:'PHILIPPINES',ZSPD:'CHINA',RKSI:'SOUTH_KOREA',ZGSZ:'CHINA',VVNB:'VIETNAM',VTBS:'THAILAND',VHHH:'HONG_KONG',RCTP:'TAIWAN',PANC:'UNITED_STATES'};return m[String(icao||'').toUpperCase()]||null;}
+function destinationCountry(icao){const m={EDDK:'GERMANY',WSSS:'SINGAPORE',VIDP:'INDIA',VOBL:'INDIA',RPLC:'PHILIPPINES',ZSPD:'CHINA',RKSI:'SOUTH_KOREA',ZGSZ:'CHINA',VVNB:'VIETNAM',VTBS:'THAILAND',VHHH:'HONG_KONG',RCTP:'TAIWAN',PANC:'UNITED_STATES'};return m[String(icao||'').toUpperCase()]||null;}
 function landingStatus(country,p){
  const r=RULES[country]||{}, oc=country===destinationCountry(p.origin), dc=country===destinationCountry(p.destination);
  if(oc&&!dc) return {status:'NO',reason:'Origin country — no landing permit check'};
