@@ -812,6 +812,21 @@ function permitBlock(country,p){return crossingFor(country,p)}
  with status NO, CONDITIONAL, or REVIEW. Permit logic may suppress an OVF request,
  but it never suppresses geographic/FIR boundary detection.
 */
+function boundaryDisplay(country,p,x){
+ const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
+ const destinationCountryName=destinationCountry(String(p.destination||'').toUpperCase());
+ if(country===originCountry && country!==destinationCountryName){
+  const sequence=countryList(p),idx=sequence.indexOf(country),nextCountry=idx>=0?sequence[idx+1]:null;
+  return {
+   points:'DEPARTURE '+String(p.origin||'REVIEW')+' → '+(nextCountry?nextCountry.replace(/_/g,' ')+' ENTRY ':'NEXT-COUNTRY ENTRY ')+x.exit,
+   times:'DEPARTURE '+x.entryTime+' / ENTRY '+x.exitTime
+  };
+ }
+ if(country===destinationCountryName && country!==originCountry){
+  return {points:'ENTRY '+x.entry+' → ARRIVAL '+String(p.destination||'REVIEW'),times:'ENTRY '+x.entryTime+' / ARRIVAL '+x.exitTime};
+ }
+ return {points:'ENTRY '+x.entry+' → EXIT '+x.exit,times:'ENTRY '+x.entryTime+' / EXIT '+x.exitTime};
+}
 function boundaryDetection(country,p){
  const x=crossingFor(country,p);
  return {...x,permitStatus:overflightRule(country,p).status,detected:x.entry!=='REVIEW'||x.exit!=='REVIEW'};
@@ -919,7 +934,7 @@ function render(){
  const permits=countries.filter(c=>{const r=overflightRule(c,p);return r.status==='YES'||r.status==='CONDITIONAL';}).length,review=countries.filter(c=>overflightRule(c,p).status==='REVIEW').length;
  byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Countries',countries.length],['Overflight / Review',permits+' / '+review]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
  byId('route').textContent=(p.route||'No route parsed')+(window.routeWarning?'\n\n⚠ '+window.routeWarning:''); byId('fplMeta').innerHTML=[['EOBT',p.eobt||'REVIEW'],['EET',p.eetTotal||'REVIEW'],['FL',p.level||'REVIEW'],['DOF',p.date||'REVIEW'],['REG',p.reg||'REVIEW']].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
- byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...overflightRule(c,p),status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':overflightRule(c,p).status},x=boundaryDetection(c,p),l=landingBlock(c,p);return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(l.status==='YES'?'yes':l.status==='REVIEW'?'review':'na')+'">'+l.status+'</span><br><span class="source">'+(l.airport?l.operation+' '+l.airport:l.reason)+'</span></td><td>'+r.validity+'</td><td>'+((r.handler||'—')+'<br><span class="source">'+(r.action||'')+'</span>')+'</td><td>'+x.entry+' → '+x.exit+'<br><span class="source">'+x.entryTime+' / '+x.exitTime+' • '+x.confidence+' • boundary detection '+(x.detected?'OK':'REVIEW')+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td>'+((r.status==='YES'||r.status==='CONDITIONAL')?'<button class="btn small" onclick="showEmail(\''+c+'\')">OVF</button>':'—')+' '+(isEndpointCountry(c,p)?'<button class="btn small" onclick="showLandingEmail(\''+c+'\')">T/L EMAIL</button>':'')+'</td></tr>'}).join(''):'<tr><td colspan="9">No Asia country match detected. Manual route review still recommended.</td></tr>';
+ byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...overflightRule(c,p),status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':overflightRule(c,p).status},x=boundaryDetection(c,p),l=landingBlock(c,p);return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(l.status==='YES'?'yes':l.status==='REVIEW'?'review':'na')+'">'+l.status+'</span><br><span class="source">'+(l.airport?l.operation+' '+l.airport:l.reason)+'</span></td><td>'+r.validity+'</td><td>'+((r.handler||'—')+'<br><span class="source">'+(r.action||'')+'</span>')+'</td><td>'+boundaryDisplay(c,p,x).points+'<br><span class="source">'+boundaryDisplay(c,p,x).times+' • '+x.confidence+' • boundary detection '+(x.detected?'OK':'REVIEW')+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td>'+((r.status==='YES'||r.status==='CONDITIONAL')?'<button class="btn small" onclick="showEmail(\''+c+'\')">OVF</button>':'—')+' '+(isEndpointCountry(c,p)?'<button class="btn small" onclick="showLandingEmail(\''+c+'\')">T/L EMAIL</button>':'')+'</td></tr>'}).join(''):'<tr><td colspan="9">No Asia country match detected. Manual route review still recommended.</td></tr>';
 }
 function currentParsedFpl(){
  const p=parseFpl(byId('fpl').value);
