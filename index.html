@@ -347,6 +347,8 @@ const CROSSING_PATTERNS=[{id:'UPS15_VIDP_EDDK',origin:'VIDP',destination:'EDDK',
    INDIA:{entry:'SULOM',exit:'VIDP'}
   },
   eet:{
+   // VEMUT is shown at 0231 by the OFP FIR parser; share that boundary time across both country rows.
+   CZECH_REPUBLIC:{entry:'0231'},
    ARMENIA:{entry:'0333',exit:'0343'},
    AZERBAIJAN:{entry:'0343',exit:'0412'},
    TURKMENISTAN:{entry:'0412',exit:'0507'},
