@@ -741,7 +741,7 @@ function crossingFor(country,p){
   // A verified corridor crossing is authoritative for the shared boundary waypoint.
   // The generic FIR parser may identify an earlier waypoint in the FIR section (e.g. ETVIS),
   // which can disagree with the explicitly verified next-country entry (e.g. VEMUT).
-  const nextFix=nextPattern?.crossings?.[nextCountry]?.entry||nextAuto?.entry||'REVIEW';
+  const nextFix=pattern?.crossings?.[country]?.exit||nextPattern?.crossings?.[nextCountry]?.entry||nextAuto?.entry||'REVIEW';
   const nextEet=nextPattern?.eet?.[nextCountry]?.entry||nextAuto?.entryEet||null;
   return {
    entry:originIcao,
