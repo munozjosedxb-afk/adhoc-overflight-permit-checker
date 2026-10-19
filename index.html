@@ -513,6 +513,43 @@ const CROSSING_PATTERNS=[{id:'UPS15_VIDP_EDDK',origin:'VIDP',destination:'EDDK',
    MYANMAR:{entry:'DWI',exit:'LALIT'}
   }
  },
+
+ {id:'UPS1_VHHH_EDDK',origin:'VHHH',destination:'EDDK',
+  routeIncludes:['BEKOL','TEPID','OSNOV','ELKAL','OMBON','SADAN','KAMUD','TISIB','OGOLI','DARVA','METKA','RASAM','EDATA','MATAL','REBLO','DELEL','CRM','ODERO','IRLOX','BUDOP','BALUX','BEGLA','STO','DITIS','RAPET','VELIS','MASEK','ERNEP'],
+  source:'SOURCE-VERIFIED UPS1/15 VHHH-EDDK OFP 2026-10-15',
+  crossings:{
+   CHINA:{entry:'VHHH',exit:'KAMUD'},
+   KYRGYZSTAN:{entry:'KAMUD',exit:'DIPAX'},
+   UZBEKISTAN:{entry:'MOKDU',exit:'TISIB'},
+   KAZAKHSTAN:{entry:'DIBAD',exit:'OGOLI'},
+   TURKMENISTAN:{entry:'DARVA',exit:'METKA'},
+   AZERBAIJAN:{entry:'METKA',exit:'EDATA'},
+   ARMENIA:{entry:'MATAL',exit:'REBLO'},
+   TURKEY:{entry:'REBLO',exit:'EVGEG'},
+   BULGARIA:{entry:'ODERO',exit:'OPT'},
+   ROMANIA:{entry:'OPT',exit:'IRLOX'},
+   HUNGARY:{entry:'BUDOP',exit:'BALUX'},
+   AUSTRIA:{entry:'BEGLA',exit:'STO'},
+   CZECH_REPUBLIC:{entry:'DITIS',exit:'RAPET'},
+   GERMANY:{entry:'MASEK',exit:'EDDK'}
+  },
+  eet:{
+   CHINA:{entry:'EOBT',exit:'0505'},
+   KYRGYZSTAN:{entry:'0505',exit:'0546'},
+   UZBEKISTAN:{entry:'0552',exit:'0555'},
+   KAZAKHSTAN:{entry:'0608',exit:'0616'},
+   TURKMENISTAN:{entry:'0651',exit:'0743'},
+   AZERBAIJAN:{entry:'0743',exit:'0808'},
+   ARMENIA:{entry:'0817',exit:'0828'},
+   TURKEY:{entry:'0828',exit:'0942'},
+   BULGARIA:{entry:'0942',exit:'0947'},
+   ROMANIA:{entry:'0947',exit:'1027'},
+   HUNGARY:{entry:'1043',exit:'1057'},
+   AUSTRIA:{entry:'1109',exit:'1116'},
+   CZECH_REPUBLIC:{entry:'1122',exit:'1140'},
+   GERMANY:{entry:'1154',exit:'EOBT'}
+  }
+ },
  {id:'UPS506_RCTP_VOBL',origin:'RCTP',destination:'VOBL',
   routeIncludes:['CHALI','MKG','KADLO','KAPLI','MADRU','SULUX','IGLEG','IKELA','DAN','POTEV','UBL','TANEK','DWI','LULDA','LADER','PPB','MMV','XIVIL'],
   source:'SOURCE-VERIFIED UPS506 RCTP-VOBL OFP',
