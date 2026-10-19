@@ -221,6 +221,10 @@ function detectFirs(p){
 }
 function routeCountryOverrides(p){
  const r=p.route.toUpperCase(),out=[];
+ // UPS operational route matrix: CGN-HKG corridor includes Turkmenistan and Kazakhstan.
+ // Add the country rows even when an OFP omits those FIR identifiers; crossing points
+ // must still be sourced from FIR/OFP data or left REVIEW, never guessed.
+ if(String(p.origin||'').toUpperCase()==='CGN'&&String(p.destination||'').toUpperCase()==='HKG') out.push('TURKMENISTAN','KAZAKHSTAN');
  if(/\b(?:LAMEN|PK|MADUK|LEGIV|ADGOL|IDGAG|QNX|XISLI|SGM)\b/.test(r))out.push('CHINA');
  if(/\b(?:LINSO|ANSOS|LSO|TANEK|DWI|LALIT|LULDA)\b/.test(r))out.push('MYANMAR');
  if(/\b(?:TEBUL|AGARTALA|A201)\b/.test(r))out.push('BANGLADESH');
