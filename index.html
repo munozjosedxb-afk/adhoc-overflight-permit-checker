@@ -635,6 +635,14 @@ const CROSSING_PATTERNS=[{id:'UPS15_VIDP_EDDK',origin:'VIDP',destination:'EDDK',
    SAUDI_ARABIA:{entry:'0300',exit:'0534'},
    EGYPT:{entry:'0534',exit:'0643'}
   }
+ },
+ {id:'UPS2_EDDK_VHHH_CAUCASUS',origin:'EDDK',destination:'VHHH',
+  routeIncludes:['REBLO','MATAL','EDATA','LUSAL','LARGI','KRS','DSH'],
+  source:'OFP route-confirmed Caucasus corridor • verify EET/FIR anchors',
+  crossings:{
+   ARMENIA:{entry:'REBLO',exit:'MATAL'},
+   AZERBAIJAN:{entry:'MATAL',exit:'LARGI'}
+  }
  }
 ];
 
@@ -721,12 +729,11 @@ function ofpFirBoundaryFor(country,p){
  // Build a route-wide waypoint -> cumulative EET map from the =WAYPOINT rows.
  // These are the actual OFP cumulative times, not leg durations.
  const waypointEets=new Map();
- const routeWaypointOrder=[];
+ const routeWaypointOrder=routeTokens(p);
  for(const line of lines){
   const m=String(line||'').match(/^\s*=([A-Z][A-Z0-9]{2,5})\b/i);
   if(!m)continue;
   const name=m[1].toUpperCase();
-  if(!routeWaypointOrder.includes(name))routeWaypointOrder.push(name);
   const eet=cumulativeEetForEqualsLine(line,name);
   if(eet)waypointEets.set(name,eet);
  }
