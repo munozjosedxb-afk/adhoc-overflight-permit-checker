@@ -1,10 +1,17 @@
 // ICAO FPL extraction helpers. Kept separate from the main UI so each change can be verified safely.
 function parseCoreFpl(raw){
-  const s=String(raw||'').replace(/\s+/g,' ').trim();
-  const m=s.match(/\(FPL-([A-Z0-9\/]+).*?-([A-Z]{4})(\d{4}).*?-([A-Z])(\d{3,4})((?:F|S)\d{3,4}).*?-([A-Z]{4})(\d{4})/i);
+  // Full OFPs contain route summaries and waypoint/NOTAM text before the
+  // embedded ICAO FPL. Isolate the parenthesized FPL first so earlier text
+  // cannot satisfy any of the route-field regexes.
+  const rawText=String(raw||'');
+  const start=rawText.search(/\(FPL-/i);
+  if(start<0) return {valid:false};
+  const end=rawText.indexOf(')',start);
+  const block=(end>=0?rawText.slice(start,end+1):rawText.slice(start)).replace(/\s+/g,' ').trim();
+  const m=block.match(/\(FPL-([A-Z0-9\/]+).*?-([A-Z]{4})(\d{4}).*?-([A-Z])(\d{3,4})((?:F|S)\d{3,4}).*?-([A-Z]{4})(\d{4})/i);
   if(!m) return {valid:false};
-  const date=(s.match(/DOF\/(\d{6})/i)||[])[1]||'';
-  const reg=(s.match(/REG\/([A-Z0-9-]+)/i)||[])[1]||'';
+  const date=(block.match(/DOF\/(\d{6})/i)||[])[1]||'';
+  const reg=(block.match(/REG\/([A-Z0-9-]+)/i)||[])[1]||'';
   return {valid:true,callsign:m[1],origin:m[2],eobt:m[3],speed:m[5],level:m[6],destination:m[7],eetTotal:m[8],eta:m[8],date,reg};
 }
 
