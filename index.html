@@ -791,6 +791,20 @@ function crossingFor(country,p){
   };
  }
 
+ // Timor-Leste and Indonesia share the WAAF FIR. A WAAF section alone
+ // cannot establish the national boundary crossing, so never reuse Indonesia's
+ // FIR-derived points/times as Timor-Leste's country crossing.
+ if(country==='TIMOR_LESTE' && (RULES.INDONESIA?.firs||[]).includes('WAAF') &&
+    (RULES.TIMOR_LESTE?.firs||[]).includes('WAAF')){
+  return {
+   entry:'REVIEW',
+   exit:'REVIEW',
+   entryTime:'REVIEW',
+   exitTime:'REVIEW',
+   confidence:'WAAF FIR covers this region; separate Timor-Leste national boundary crossing requires AIP/route-coordinate verification'
+  };
+ }
+
  // Transit/overflight country. Permit status is evaluated separately from
  // geographic boundary detection. A country may contain multiple FIRs.
  if(pattern){
