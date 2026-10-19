@@ -213,13 +213,17 @@ function parseFpl(raw){
  return {valid:false};
 }
 function detectFirs(p){
- const all=(p.eet+' '+p.route).toUpperCase();
- // FIRs are detection inputs only. They are immediately collapsed to unique COUNTRIES.
- // Multiple FIRs, FIR re-entries, or adjacent FIRs within the same country never create
- // separate permit rows or separate permit applications.
- return Object.entries(RULES).filter(([k,r])=>r.firs.some(f=>new RegExp('(?:^|\\s)'+f+'(?:\\d{4}\\b|\\b)').test(all))).map(x=>x[0]);
-}
-function routeCountryOverrides(p){
+  const all=(p.eet+' '+p.route).toUpperCase();
+  const raw=String(p.raw||'').toUpperCase();
+  // FIR identifiers can appear in OFP FIR headers even when absent from the
+  // compact EET field and filed route. Include those headers in country detection.
+  // Multiple FIRs still collapse to one country row.
+  return Object.entries(RULES).filter(([k,r])=>r.firs.some(f=>
+   new RegExp('(?:^|\\s)'+f+'(?:\\d{4}\\b|\\b)').test(all) ||
+   new RegExp('FIR\\s*[/:-]\\s*'+f+'\\b').test(raw)
+  )).map(x=>x[0]);
+ }
+ function routeCountryOverrides(p){
  const r=p.route.toUpperCase(),out=[];
  // UPS operational route matrix: CGN-HKG corridor includes Turkmenistan and Kazakhstan.
  // Add the country rows even when an OFP omits those FIR identifiers; crossing points
