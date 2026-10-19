@@ -711,10 +711,12 @@ function ofpFirBoundaryFor(country,p){
  // Build a route-wide waypoint -> cumulative EET map from the =WAYPOINT rows.
  // These are the actual OFP cumulative times, not leg durations.
  const waypointEets=new Map();
+ const routeWaypointOrder=[];
  for(const line of lines){
-  const m=String(line||'').match(/^\s*=([A-Z][A-Z0-9]{2,5})\b/i);
+  const m=String(line||'').match(/^\\s*=([A-Z][A-Z0-9]{2,5})\\b/i);
   if(!m)continue;
   const name=m[1].toUpperCase();
+  if(!routeWaypointOrder.includes(name))routeWaypointOrder.push(name);
   const eet=cumulativeEetForEqualsLine(line,name);
   if(eet)waypointEets.set(name,eet);
  }
@@ -759,9 +761,16 @@ function ofpFirBoundaryFor(country,p){
  const anchoredEntry=waypointForFirAnchor(first.fir);
  const entryPoint=anchoredEntry||first.points[0];
 
- // Exit is the final route waypoint contained by the final applicable FIR
- // section. Its cumulative EET is taken directly from the OFP.
- const exitPoint=last.points[last.points.length-1];
+ // Exit is normally the final route waypoint contained by the final applicable FIR
+ // section. If the OFP provides only one named fix for the country, do not display
+ // that same fix as both entry and exit: use the next waypoint in the filed OFP.
+ // Ordered =WAYPOINT rows preserve route order and avoid selecting an airway designator.
+ let exitPoint=last.points[last.points.length-1];
+ if(entryPoint?.name && exitPoint?.name===entryPoint.name){
+  const routeIndex=routeWaypointOrder.indexOf(entryPoint.name);
+  const nextName=routeIndex>=0?routeWaypointOrder[routeIndex+1]:null;
+  if(nextName)exitPoint={name:nextName,eet:waypointEets.get(nextName)||null};
+ }
 
  return {
   firstFir:first.fir,
