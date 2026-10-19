@@ -53,7 +53,7 @@ if(typeof parseCoreFpl!=='function'){
   const callsign=(s.match(/\(FPL-([A-Z0-9/]+)-/i)||[])[1]||'';
   const om=s.match(/-([A-Z]{4})(\d{4})(?:\s|$)/i)||[];
   const origin=om[1]||'', eobt=om[2]||'';
-  const routeStart=s.match(/-([A-Z]\d{3,4}F\d{3,4})\s/i);
+  const routeStart=s.match(/-([A-Z]\d{3,4}(?:F|S)\d{3,4})\s/i);
   const dm=s.match(/\s-([A-Z]{4})(\d{4})(?:\s|$)/i)||[];
   const destination=dm[1]||'', eetTotal=dm[2]||'';
   if(!callsign||!origin||!eobt||!routeStart||!destination) return {valid:false};
@@ -192,7 +192,7 @@ function parseFpl(raw){
  const p=parseCoreFpl(raw);
  const s=String(raw||'').replace(/\s+/g,' ').trim();
  if(p.valid){
-  const routePart=(s.match(/-[A-Z]\d{3,4}F\d{3,4}\s(.+?)\s-[A-Z]{4}\d{4}/)||['',''])[1]||'';
+  const routePart=(s.match(/-[A-Z]\d{3,4}(?:F|S)\d{3,4}\s(.+?)\s-[A-Z]{4}\d{4}/)||['',''])[1]||'';
   const eet=(s.match(/EET\/([^\)]+)/)||[,''])[1]||'';
   const aircraft=(s.match(/-([A-Z0-9]{4})\//)||[,''])[1]||'';
   return {...p,aircraft,route:routePart,eet,raw:String(raw||''),inputType:'ICAO FPL'};
