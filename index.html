@@ -228,7 +228,13 @@ function detectFirs(p){
  // UPS operational route matrix: CGN-HKG corridor includes Turkmenistan and Kazakhstan.
  // Add the country rows even when an OFP omits those FIR identifiers; crossing points
  // must still be sourced from FIR/OFP data or left REVIEW, never guessed.
- if(String(p.origin||'').toUpperCase()==='EDDK'&&String(p.destination||'').toUpperCase()==='VHHH') out.push('TURKMENISTAN','KAZAKHSTAN');
+ if(String(p.origin||'').toUpperCase()==='EDDK'&&String(p.destination||'').toUpperCase()==='VHHH') {
+   out.push('TURKMENISTAN','KAZAKHSTAN');
+   // Verified EDDK→VHHH corridor crosses Armenia at REBLO and enters
+   // Azerbaijan/Baku FIR at MATAL. Keep these countries visible even when
+   // the FIR header is absent from the parser's compact fields.
+   if(/\\bREBLO\\b/.test(r)&&/\\bMATAL\\b/.test(r)) out.push('ARMENIA','AZERBAIJAN');
+  }
  if(/\b(?:LAMEN|PK|MADUK|LEGIV|ADGOL|IDGAG|QNX|XISLI|SGM)\b/.test(r))out.push('CHINA');
  if(/\b(?:LINSO|ANSOS|LSO|TANEK|DWI|LALIT|LULDA)\b/.test(r))out.push('MYANMAR');
  if(/\b(?:TEBUL|AGARTALA|A201)\b/.test(r))out.push('BANGLADESH');
