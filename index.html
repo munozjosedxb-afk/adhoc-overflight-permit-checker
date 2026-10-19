@@ -906,6 +906,19 @@ function permitBlock(country,p){return crossingFor(country,p)}
  but it never suppresses geographic/FIR boundary detection.
 */
 function boundaryDisplay(country,p,x){
+ // In Europe, hide entry/exit detail when the permit rule is NO.
+ // This changes only the table display, not route/FIR detection.
+ const europeanNoPermit=new Set([
+  'ALBANIA','AUSTRIA','BELARUS','BELGIUM','BOSNIA_HERZEGOVINA','BULGARIA',
+  'CROATIA','CYPRUS','CZECH_REPUBLIC','DENMARK','ESTONIA','FINLAND','FRANCE',
+  'GERMANY','GREECE','HUNGARY','ICELAND','IRELAND','ITALY','KOSOVO','LATVIA',
+  'LIECHTENSTEIN','LITHUANIA','LUXEMBOURG','MALTA','MOLDOVA','NETHERLANDS',
+  'NORTH_MACEDONIA','NORWAY','POLAND','PORTUGAL','ROMANIA','SERBIA_MONTENEGRO',
+  'SLOVAKIA','SLOVENIA','SPAIN','SWEDEN','SWITZERLAND','UNITED_KINGDOM','UKRAINE','TURKEY'
+ ]);
+ if(europeanNoPermit.has(country) && overflightRule(country,p).status==='NO'){
+  return {points:'—',times:'—'};
+ }
  const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
  const destinationCountryName=destinationCountry(String(p.destination||'').toUpperCase());
  if(country===originCountry && country!==destinationCountryName){
