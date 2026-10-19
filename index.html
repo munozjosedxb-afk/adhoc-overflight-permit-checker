@@ -713,7 +713,7 @@ function ofpFirBoundaryFor(country,p){
  const waypointEets=new Map();
  const routeWaypointOrder=[];
  for(const line of lines){
-  const m=String(line||'').match(/^\\s*=([A-Z][A-Z0-9]{2,5})\\b/i);
+  const m=String(line||'').match(/^\s*=([A-Z][A-Z0-9]{2,5})\b/i);
   if(!m)continue;
   const name=m[1].toUpperCase();
   if(!routeWaypointOrder.includes(name))routeWaypointOrder.push(name);
