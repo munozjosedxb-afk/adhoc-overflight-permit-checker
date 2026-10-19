@@ -406,6 +406,18 @@ const CROSSING_PATTERNS=[{id:'UPS15_VIDP_EDDK',origin:'VIDP',destination:'EDDK',
    INDIA:{entry:'0604',exit:'0615'}
   }
  },
+ {id:'UPS155_ZSPD_RPLC',origin:'ZSPD',destination:'RPLC',
+  routeIncludes:['BEGMO','DST','LJG','DOTMI','ENROM','NOMAN','MUMOT','AVMUP','TATIL','BABAN'],
+  source:'SOURCE-VERIFIED UPS155 ZSPD-RPLC OFP',
+  crossings:{
+   CHINA:{entry:'ZSPD',exit:'DOTMI'},
+   PHILIPPINES:{entry:'MUMOT',exit:'RPLC'}
+  },
+  eet:{
+   CHINA:{entry:'EOBT',exit:'0128'},
+   PHILIPPINES:{entry:'0158',exit:'0245'}
+  }
+ },
  {id:'UPS156_YSSY_RPLC',origin:'YSSY',destination:'RPLC',
   routeIncludes:['TOREX','TIRAM','TEMON','SELSO','ANIMU','LIGPA','MIA','CIA'],
   source:'SOURCE-VERIFIED UPS156 YSSY-RPLC OFP',
