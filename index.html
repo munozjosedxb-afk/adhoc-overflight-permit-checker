@@ -808,6 +808,32 @@ function crossingFor(country,p){
  const destinationIcao=String(p.destination||'').toUpperCase();
  const originCountry=destinationCountry(originIcao);
  const destinationCountryName=destinationCountry(destinationIcao);
+ const routeFixes=routeTokens(p);
+ // Explicit shared-boundary rule for the EDDK→VHHH Caucasus corridor.
+ // Keep this ahead of the generic FIR parser: UDDD's last listed fix can be
+ // BAKUV, but the filed route transitions from Armenia to Baku FIR at MATAL.
+ if(originIcao==='EDDK' && destinationIcao==='VHHH' &&
+    routeContainsInOrder(routeFixes,['REBLO','MATAL'])){
+  if(country==='ARMENIA'){
+   const t=CROSSING_PATTERNS.find(x=>x.id==='UPS2_EDDK_VHHH_CAUCASUS')?.eet?.ARMENIA||{};
+   return {entry:'REBLO',exit:'MATAL',
+    entryTime:t.entry?eetClock(p.eobt,t.entry,p.date).time:'REVIEW',
+    exitTime:t.exit?eetClock(p.eobt,t.exit,p.date).time:'REVIEW',
+    confidence:'Verified route-specific country boundary • REBLO → MATAL'};
+  }
+  if(country==='AZERBAIJAN'){
+   const t=CROSSING_PATTERNS.find(x=>x.id==='UPS2_EDDK_VHHH_CAUCASUS')?.eet?.AZERBAIJAN||{};
+   return {entry:'MATAL',exit:'REVIEW',
+    entryTime:t.entry?eetClock(p.eobt,t.entry,p.date).time:'REVIEW',
+    exitTime:'REVIEW',
+    confidence:'Route confirms entry at MATAL; Azerbaijan exit requires OFP boundary verification'};
+  }
+ }
+
+ const originIcao=String(p.origin||'').toUpperCase();
+ const destinationIcao=String(p.destination||'').toUpperCase();
+ const originCountry=destinationCountry(originIcao);
+ const destinationCountryName=destinationCountry(destinationIcao);
  const pattern=crossingPatternFor(country,p);
  const auto=ofpFirBoundaryFor(country,p);
 
