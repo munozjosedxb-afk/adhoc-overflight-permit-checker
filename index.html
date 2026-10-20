@@ -887,14 +887,10 @@ function crossingFor(country,p){
   };
  }
 
- // Transit/overflight country. Permit status is evaluated separately from
- // geographic boundary detection. A country may contain multiple FIRs.
- if(pattern){
-  const c=pattern.crossings[country],t=pattern.eet?.[country]||{};
-  const ec=t.entry==='EOBT'?{time:p.eobt||'REVIEW'}:t.entry?eetClock(p.eobt,t.entry,p.date):{time:'REVIEW'};
-  const xc=t.exit==='EOBT'?{time:p.eobt||'REVIEW'}:t.exit?eetClock(p.eobt,t.exit,p.date):{time:'REVIEW'};
-  return {entry:c.entry,exit:c.exit,entryTime:ec.time,exitTime:xc.time,confidence:pattern.source};
- }
+ // Transit/overflight country. The uploaded OFP's FIR sections are the
+ // source of truth for route direction and country entry/exit. Use a verified
+ // corridor pattern only when the OFP does not provide usable FIR-section data.
+ // Permit status is evaluated separately from geographic boundary detection.
  if(auto){
   const entryTime=auto.entryEet?eetClock(p.eobt,auto.entryEet,p.date).time:'REVIEW';
   const exitTime=auto.exitEet?eetClock(p.eobt,auto.exitEet,p.date).time:'REVIEW';
@@ -905,6 +901,12 @@ function crossingFor(country,p){
    exitTime,
    confidence:'OFP country FIR sections • '+auto.firs.join(' → ')
   };
+ }
+ if(pattern){
+  const c=pattern.crossings[country],t=pattern.eet?.[country]||{};
+  const ec=t.entry==='EOBT'?{time:p.eobt||'REVIEW'}:t.entry?eetClock(p.eobt,t.entry,p.date):{time:'REVIEW'};
+  const xc=t.exit==='EOBT'?{time:p.eobt||'REVIEW'}:t.exit?eetClock(p.eobt,t.exit,p.date):{time:'REVIEW'};
+  return {entry:c.entry,exit:c.exit,entryTime:ec.time,exitTime:xc.time,confidence:pattern.source};
  }
  const firs=RULES[country]?.firs||[],anchors=parseEetAnchors(p.eet||'');
  const hits=anchors.map((x,i)=>({x,i})).filter(x=>firs.includes(x.x.fir));
