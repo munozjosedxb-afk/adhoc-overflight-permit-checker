@@ -830,10 +830,6 @@ function crossingFor(country,p){
   }
  }
 
- const originIcao=String(p.origin||'').toUpperCase();
- const destinationIcao=String(p.destination||'').toUpperCase();
- const originCountry=destinationCountry(originIcao);
- const destinationCountryName=destinationCountry(destinationIcao);
  const pattern=crossingPatternFor(country,p);
  const auto=ofpFirBoundaryFor(country,p);
 
