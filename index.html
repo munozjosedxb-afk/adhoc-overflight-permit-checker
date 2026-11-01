@@ -1078,6 +1078,8 @@ function runDelayCheck(){
  const issued=raw?new Date(raw+'Z'):null;
  const revisedIso=revised&&!isNaN(revised)?revised.toISOString():null;
  const fmt=d=>d?d.toISOString().replace('T',' ').slice(0,16)+'Z':'REVIEW';
+ const delayLabel=delay+' '+(unit==='hours'?'hour(s)':'minute(s)');
+ const preface=(!revisedIso?'REVIEW — flight plan EOBT/DOF could not be read, so revised timing cannot be calculated.':!issued?'NOT CLEARED — enter the permit valid-from time (UTC) to assess the revised EOBT against the permit window.':'Delay entered: '+delayLabel+'. Revised EOBT is compared with each country’s recorded OVF validity window.');
  const rows=window.currentCountries.filter(c=>{
   const r=overflightRule(c,p),l=landingStatus(c,p);
   return r.status==='YES'||r.status==='CONDITIONAL'||r.status==='REVIEW'||l.status==='YES'||l.status==='REVIEW';
@@ -1091,7 +1093,7 @@ function runDelayCheck(){
   const tl=(l.status==='YES'||l.status==='REVIEW')?'Confirm with permit/authority — landing/takeoff validity not separately verified':'Not applicable';
   return '<tr><td><strong>'+r.name+'</strong></td><td>'+ov+'</td><td>'+tl+'</td></tr>';
  });
- byId('delayOutput').innerHTML='<p>Revised EOBT estimate: '+fmt(revisedIso?new Date(revisedIso):null)+'</p><div style="overflow:auto"><table><thead><tr><th>Country</th><th>Overflight</th><th>Landing / Takeoff</th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div><p class="hint">A delay alone does not establish that a permit is expired. Check the issued approval for its validity anchor, route, aircraft, and schedule-change terms. Unknown or non-numeric conditions require authority confirmation.</p>';
+ byId('delayOutput').innerHTML='<p><strong>'+preface+'</strong></p><p>Revised EOBT estimate: '+fmt(revisedIso?new Date(revisedIso):null)+'</p><div style="overflow:auto"><table><thead><tr><th>Country</th><th>Overflight</th><th>Landing / Takeoff</th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div><p class="hint">A delay alone does not establish that a permit is expired. Check the issued approval for its validity anchor, route, aircraft, and schedule-change terms. Unknown or non-numeric conditions require authority confirmation.</p>';
 }
 function currentParsedFpl(){
  const p=parseFpl(byId('fpl').value);
