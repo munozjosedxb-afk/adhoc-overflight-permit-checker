@@ -1096,7 +1096,7 @@ function runDelayCheck(){
   const tl=(l.status==='YES'||l.status==='REVIEW')?'Confirm with permit/authority — landing/takeoff validity not separately verified':'Not applicable';
   return '<tr><td><strong>'+r.name+'</strong></td><td>'+ov+'</td><td>'+tl+'</td></tr>';
  });
- byId('delayOutput').innerHTML='<p><strong>'+preface+'</strong></p><p>Revised EOBT estimate: '+fmt(revisedIso?new Date(revisedIso):null)+'</p><div style="overflow:auto"><table><thead><tr><th>Country</th><th>Overflight</th><th>Landing / Takeoff</th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div><p class="hint">A delay alone does not establish that a permit is expired. Check the issued approval for its validity anchor, route, aircraft, and schedule-change terms. Unknown or non-numeric conditions require authority confirmation.</p>';
+ byId('delayOutput').innerHTML='<p><strong>'+preface+'</strong></p><p>Revised EOBT estimate: '+fmt(revisedIso?new Date(revisedIso):null)+'</p>'+(rows.length?'<div style="overflow:auto"><table><thead><tr><th>Country</th><th>Overflight</th><th>Landing / Takeoff</th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div>':'<p><strong>No country permit rows were generated.</strong> Run CHECK FLIGHT PLAN again and verify that the route includes countries/FIRs. The delay estimate above is still shown.</p>')+'<p class="hint">A delay alone does not establish that a permit is expired. Check the issued approval for its validity anchor, route, aircraft, and schedule-change terms. Unknown or non-numeric conditions require authority confirmation.</p>';
 }
 function currentParsedFpl(){
  const p=parseFpl(byId('fpl').value);
