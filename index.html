@@ -1071,7 +1071,7 @@ function runDelayCheck(){
  if(!Number.isFinite(delay)||delay<0||!Number.isInteger(delay)){alert('Enter a whole, non-negative delay.');return;}
  const delayMs=delay*(unit==='hours'?3600000:60000);
  let revised=null;
- if(/^\\d{4}$/.test(p.eobt||'') && /^\\d{6}$/.test(p.date||'')){
+ if(/^\d{4}$/.test(p.eobt||'') && /^\d{6}$/.test(p.date||'')){
   revised=new Date(Date.UTC(2000+Number(p.date.slice(0,2)),Number(p.date.slice(2,4))-1,Number(p.date.slice(4,6)),Number(p.eobt.slice(0,2)),Number(p.eobt.slice(2))).getTime()+delayMs);
  }
  const raw=byId('permitStart').value;
