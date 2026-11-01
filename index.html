@@ -37,7 +37,7 @@ textarea,input{width:100%;background:#09111e;color:#eaf1ff;border:1px solid #2b3
 <div class="notice"><strong>COUNTRY-LEVEL PERMIT LOGIC:</strong> FIRs are used only to identify which countries the route crosses. Multiple FIRs, FIR re-entries, or several FIRs inside the same country produce <strong>one country permit decision and one country permit request</strong>. OVERFLIGHT (OVF) and TAKEOFF/LANDING (T/O-LDG) are separate permit checks. OVF applies to overflight countries; T/O-LDG appears only for the departure and arrival airport countries. REVIEW means the requirement or validity still needs operational verification; the tool will not invent a permit validity period.</div>
 </section>
 
-<section class="card hidden" id="delayCard"><label>DELAY CHECK — PERMIT VALIDITY</label><div class="hint">Screen the revised operation against recorded permit validity. Enter the delay as hours or minutes. Dates use YYYY-MM-DD and times use 24-hour HH:MM UTC. The issued permit and authority conditions control.</div><div id="delayFplTimes" class="hint" style="margin:8px 0 12px"><strong>From entered flight plan:</strong> EOBT — • DOF —</div><div class="controls" style="align-items:end"><div style="flex:1;min-width:150px"><label for="delayValue">DELAY</label><input id="delayValue" type="number" min="0" step="1" value="0"></div><div style="flex:1;min-width:130px"><label for="delayUnit">UNIT</label><select id="delayUnit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></div><div style="flex:2;min-width:220px"><label for="permitStart">PERMIT VALID-FROM (UTC)</label><input id="permitStart" type="datetime-local" aria-label="Permit valid-from date and time in UTC"><div class="hint">YYYY-MM-DD HH:MM (24-hour UTC)</div></div><button class="btn primary" id="runDelay">CHECK DELAY</button></div><div id="delayOutput" style="margin-top:14px"></div></section>
+<section class="card hidden" id="delayCard"><label>DELAY CHECK — PERMIT VALIDITY</label><div class="hint">Screen the revised operation against recorded permit validity. Enter the delay as hours or minutes. Dates use YYYY-MM-DD and times use 24-hour HH:MM UTC. The issued permit and authority conditions control.</div><div id="delayFplTimes" class="hint" style="margin:8px 0 12px"><strong>From entered flight plan:</strong> EOBT — • DOF —</div><div class="controls" style="align-items:end"><div style="flex:1;min-width:150px"><label for="delayValue">DELAY</label><input id="delayValue" type="number" min="0" step="1" value="0"></div><div style="flex:1;min-width:130px"><label for="delayUnit">UNIT</label><select id="delayUnit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></div><div style="flex:2;min-width:220px"><label for="permitStart">PERMIT VALID-FROM (UTC)</label><input id="permitStart" type="text" inputmode="numeric" placeholder="YYYY-MM-DD HH:MM" aria-label="Permit valid-from date and time in UTC"><div class="hint">YYYY-MM-DD HH:MM (24-hour UTC)</div></div><button class="btn primary" id="runDelay">CHECK DELAY</button></div><div id="delayOutput" style="margin-top:14px"></div></section>
 
 <section class="card hidden" id="emailCard">
 <label>READY-TO-COPY PERMIT REQUEST</label>
@@ -1076,8 +1076,9 @@ function runDelayCheck(){
  if(/^\d{4}$/.test(p.eobt||'') && /^\d{6}$/.test(p.date||'')){
   revised=new Date(Date.UTC(2000+Number(p.date.slice(0,2)),Number(p.date.slice(2,4))-1,Number(p.date.slice(4,6)),Number(p.eobt.slice(0,2)),Number(p.eobt.slice(2))).getTime()+delayMs);
  }
- const raw=byId('permitStart').value;
- const issued=raw?new Date(raw+'Z'):null;
+ const raw=byId('permitStart').value.trim();
+ const normalized=raw.replace(' ','T');
+ const issued=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(normalized)?new Date(normalized+'Z'):null;
  const revisedIso=revised&&!isNaN(revised)?revised.toISOString():null;
  const fmt=d=>d?d.toISOString().replace('T',' ').slice(0,16)+'Z':'REVIEW';
  const delayLabel=delay+' '+(unit==='hours'?'hour(s)':'minute(s)');
