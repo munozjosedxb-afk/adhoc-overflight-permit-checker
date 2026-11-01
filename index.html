@@ -1065,7 +1065,7 @@ function render(){
  byId('delayFplTimes').innerHTML='<strong>From entered flight plan:</strong> EOBT '+(p.eobt||'unavailable')+' UTC • DOF '+(p.date&&p.date.length===6?'20'+p.date.slice(0,2)+'-'+p.date.slice(2,4)+'-'+p.date.slice(4,6):(p.date||'unavailable'));
  byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...overflightRule(c,p),status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':overflightRule(c,p).status},x=boundaryDetection(c,p),l=landingBlock(c,p);return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(l.status==='YES'?'yes':l.status==='REVIEW'?'review':'na')+'">'+l.status+'</span><br><span class="source">'+(l.airport?l.operation+' '+l.airport:l.reason)+'</span></td><td>'+r.validity+'</td><td>'+((r.handler||'—')+'<br><span class="source">'+(r.action||'')+'</span>')+'</td><td>'+boundaryDisplay(c,p,x).points+'<br><span class="source">'+boundaryDisplay(c,p,x).times+' • '+x.confidence+' • boundary detection '+(x.detected?'OK':'REVIEW')+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td>'+((r.status==='YES'||r.status==='CONDITIONAL')?'<button class="btn small" onclick="showEmail(\''+c+'\')">OVF</button>':'—')+' '+(isEndpointCountry(c,p)?'<button class="btn small" onclick="showLandingEmail(\''+c+'\')">T/L EMAIL</button>':'')+'</td></tr>'}).join(''):'<tr><td colspan="9">No Asia country match detected. Manual route review still recommended.</td></tr>';
 }
-function runDelayCheck(){
+function runDelayCheckInternal(){
  const p=window.currentParsed;
  if(!p||!window.currentCountries){alert('Run CHECK FLIGHT PLAN first.');return;}
  byId('delayFplTimes').innerHTML='<strong>From entered flight plan:</strong> EOBT '+(p.eobt||'unavailable')+' UTC • DOF '+(p.date&&p.date.length===6?'20'+p.date.slice(0,2)+'-'+p.date.slice(2,4)+'-'+p.date.slice(4,6):(p.date||'unavailable'));
@@ -1097,6 +1097,14 @@ function runDelayCheck(){
   return '<tr><td><strong>'+r.name+'</strong></td><td>'+ov+'</td><td>'+tl+'</td></tr>';
  });
  byId('delayOutput').innerHTML='<p><strong>'+preface+'</strong></p><p>Revised EOBT estimate: '+fmt(revisedIso?new Date(revisedIso):null)+'</p>'+(rows.length?'<div style="overflow:auto"><table><thead><tr><th>Country</th><th>Overflight</th><th>Landing / Takeoff</th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div>':'<p><strong>No country permit rows were generated.</strong> Run CHECK FLIGHT PLAN again and verify that the route includes countries/FIRs. The delay estimate above is still shown.</p>')+'<p class="hint">A delay alone does not establish that a permit is expired. Check the issued approval for its validity anchor, route, aircraft, and schedule-change terms. Unknown or non-numeric conditions require authority confirmation.</p>';
+}
+function runDelayCheck(){
+ try{runDelayCheckInternal();}
+ catch(e){
+  console.error('Delay check failed:',e);
+  const out=byId('delayOutput');
+  if(out) out.innerHTML='<p><strong>DELAY CHECK ERROR</strong></p><p>The check stopped before completing: '+String(e&&e.message||e).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))+'</p><p class="hint">Run CHECK FLIGHT PLAN again. If this repeats, share the error text above.</p>';
+ }
 }
 function currentParsedFpl(){
  const p=parseFpl(byId('fpl').value);
