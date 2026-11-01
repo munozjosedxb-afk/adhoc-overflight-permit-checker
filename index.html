@@ -37,6 +37,8 @@ textarea,input{width:100%;background:#09111e;color:#eaf1ff;border:1px solid #2b3
 <div class="notice"><strong>COUNTRY-LEVEL PERMIT LOGIC:</strong> FIRs are used only to identify which countries the route crosses. Multiple FIRs, FIR re-entries, or several FIRs inside the same country produce <strong>one country permit decision and one country permit request</strong>. OVERFLIGHT (OVF) and TAKEOFF/LANDING (T/O-LDG) are separate permit checks. OVF applies to overflight countries; T/O-LDG appears only for the departure and arrival airport countries. REVIEW means the requirement or validity still needs operational verification; the tool will not invent a permit validity period.</div>
 </section>
 
+<section class="card hidden" id="delayCard"><label>DELAY CHECK — PERMIT VALIDITY</label><div class="hint">Screen the revised operation against recorded permit validity. Enter delay in hours and, when available, the permit valid-from time in UTC. The issued permit and authority conditions control.</div><div class="controls" style="align-items:end"><div style="flex:1;min-width:150px"><label for="delayHours">DELAY (HOURS)</label><input id="delayHours" type="number" min="0" step="0.25" value="0"></div><div style="flex:2;min-width:220px"><label for="permitStart">PERMIT VALID-FROM (UTC)</label><input id="permitStart" type="datetime-local"></div><button class="btn primary" id="runDelay">CHECK DELAY</button></div><div id="delayOutput" style="margin-top:14px"></div></section>
+
 <section class="card hidden" id="emailCard">
 <label>READY-TO-COPY PERMIT REQUEST</label>
 <div class="email" id="email"></div>
@@ -1056,11 +1058,39 @@ function render(){
  if(p.origin==='RCTP'||p.destination==='RCTP') window.routeWarning='UPS playbook: China overflight is not permitted when TPE/RCTP is origin or destination.';
  else if(countries.includes('TURKEY')) window.routeWarning='UPS playbook: Turkey requires GENERAL CARGO FLIGHT in Item 18.';
  else window.routeWarning='';
- byId('results').classList.remove('hidden');byId('emailCard').classList.add('hidden');
+ byId('results').classList.remove('hidden');byId('delayCard').classList.remove('hidden');byId('emailCard').classList.add('hidden');
  const permits=countries.filter(c=>{const r=overflightRule(c,p);return r.status==='YES'||r.status==='CONDITIONAL';}).length,review=countries.filter(c=>overflightRule(c,p).status==='REVIEW').length;
  byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Countries',countries.length],['Overflight / Review',permits+' / '+review]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
  byId('route').textContent=(p.route||'No route parsed')+(window.routeWarning?'\n\n⚠ '+window.routeWarning:''); byId('fplMeta').innerHTML=[['EOBT',p.eobt||'REVIEW'],['EET',p.eetTotal||'REVIEW'],['FL',p.level||'REVIEW'],['DOF',p.date||'REVIEW'],['REG',p.reg||'REVIEW']].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
  byId('tbody').innerHTML=countries.length?countries.map(c=>{const r={...overflightRule(c,p),status:(c==='JAPAN'&&/^Z[A-Z0-9]{3}$/.test(p.origin))?'YES':overflightRule(c,p).status},x=boundaryDetection(c,p),l=landingBlock(c,p);return '<tr><td><strong>'+r.name+'</strong></td><td>'+pill(r)+'</td><td><span class="pill '+(l.status==='YES'?'yes':l.status==='REVIEW'?'review':'na')+'">'+l.status+'</span><br><span class="source">'+(l.airport?l.operation+' '+l.airport:l.reason)+'</span></td><td>'+r.validity+'</td><td>'+((r.handler||'—')+'<br><span class="source">'+(r.action||'')+'</span>')+'</td><td>'+boundaryDisplay(c,p,x).points+'<br><span class="source">'+boundaryDisplay(c,p,x).times+' • '+x.confidence+' • boundary detection '+(x.detected?'OK':'REVIEW')+'</span></td><td>'+r.note+'</td><td>'+r.source+'</td><td>'+((r.status==='YES'||r.status==='CONDITIONAL')?'<button class="btn small" onclick="showEmail(\''+c+'\')">OVF</button>':'—')+' '+(isEndpointCountry(c,p)?'<button class="btn small" onclick="showLandingEmail(\''+c+'\')">T/L EMAIL</button>':'')+'</td></tr>'}).join(''):'<tr><td colspan="9">No Asia country match detected. Manual route review still recommended.</td></tr>';
+}
+function runDelayCheck(){
+ const p=window.currentParsed;
+ if(!p||!window.currentCountries){alert('Run CHECK FLIGHT PLAN first.');return;}
+ const delay=Number(byId('delayHours').value);
+ if(!Number.isFinite(delay)||delay<0){alert('Enter a valid non-negative delay in hours.');return;}
+ let revised=null;
+ if(/^\\d{4}$/.test(p.eobt||'') && /^\\d{6}$/.test(p.date||'')){
+  revised=new Date(Date.UTC(2000+Number(p.date.slice(0,2)),Number(p.date.slice(2,4))-1,Number(p.date.slice(4,6)),Number(p.eobt.slice(0,2)),Number(p.eobt.slice(2)))+delay*3600000);
+ }
+ const raw=byId('permitStart').value;
+ const issued=raw?new Date(raw+'Z'):null;
+ const revisedIso=revised&&!isNaN(revised)?revised.toISOString():null;
+ const fmt=d=>d?d.toISOString().replace('T',' ').slice(0,16)+'Z':'REVIEW';
+ const rows=window.currentCountries.filter(c=>{
+  const r=overflightRule(c,p),l=landingStatus(c,p);
+  return r.status==='YES'||r.status==='CONDITIONAL'||r.status==='REVIEW'||l.status==='YES'||l.status==='REVIEW';
+ }).map(c=>{
+  const r=overflightRule(c,p),l=landingStatus(c,p);
+  let ov='Not applicable';
+  if(r.status==='YES'||r.status==='CONDITIONAL'||r.status==='REVIEW'){
+   const v=permitValidityStatus(c,issued,revisedIso);
+   ov=v.status==='VALID'?'Within recorded OVF window':v.status==='EXPIRED'?'Outside recorded OVF window':'Confirm with permit/authority — '+v.reason;
+  }
+  const tl=(l.status==='YES'||l.status==='REVIEW')?'Confirm with permit/authority — landing/takeoff validity not separately verified':'Not applicable';
+  return '<tr><td><strong>'+r.name+'</strong></td><td>'+ov+'</td><td>'+tl+'</td></tr>';
+ });
+ byId('delayOutput').innerHTML='<p>Revised EOBT estimate: '+fmt(revisedIso?new Date(revisedIso):null)+'</p><div style="overflow:auto"><table><thead><tr><th>Country</th><th>Overflight</th><th>Landing / Takeoff</th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div><p class="hint">A delay alone does not establish that a permit is expired. Check the issued approval for its validity anchor, route, aircraft, and schedule-change terms. Unknown or non-numeric conditions require authority confirmation.</p>';
 }
 function currentParsedFpl(){
  const p=parseFpl(byId('fpl').value);
@@ -1084,6 +1114,7 @@ window.showLandingEmail=function(c){
  byId('emailCard').classList.remove('hidden');
  byId('emailCard').scrollIntoView({behavior:'smooth'});
 }
+byId('runDelay').onclick=runDelayCheck;
 byId('check').onclick=function(){
  try{render();}
  catch(e){
