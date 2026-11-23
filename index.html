@@ -133,7 +133,7 @@ const RULES={
  TAIWAN:{name:"Taiwan",firs:["RCAA"],status:"YES",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Taiwan as a 24-hour overflight permit.",source:"UPS operational permit playbook",handler:"UPS Taiwan",action:"Use Taiwan Aircom template"},
  HONG_KONG:{name:"Hong Kong",firs:["VHHK"],status:"NO",validity:"No overflight permit for normal UPS operations",landingStatus:"NO",landingNote:"No separate Hong Kong landing/takeoff permit is required for normal scheduled UPS operations under the UPS permit guide; airport operating requirements are handled separately.",entryExit:true,note:"Hong Kong AIP GEN 1.2 states that flights transiting Hong Kong airspace without landing do not require prior permission. The current UPS permit guide also treats Hong Kong as no-permit for normal scheduled UPS operations. Do not apply the old generic 24-hour permit rule. Exceptions in the AIP include state aircraft, aircraft carrying munitions of war or dangerous goods, or a flight specifically notified by the Director-General of Civil Aviation.",source:"UPS permit guide + Hong Kong AIP GEN 1.2 §8 Overflights • current scheduled-airline audit"},
  MACAU:{name:"Macau",firs:["VMMC"],status:"CONDITIONAL",validity:"Per scheduled authorization / traffic rights",entryExit:true,note:"AACM separates scheduled and non-scheduled authority. Its published airspace-use approval language applies to non-scheduled operations, while scheduled services to/from Macao operate under flight authorization and bilateral air-service rights. The previous generic 24-hour validity is not supported for a UPS scheduled transit. For transit-only scheduled overflight, verify that the applicable first-freedom/bilateral authorization covers the operation and use its terms for any schedule change.",source:"Macao AACM scheduled/non-scheduled flight approval framework + Air Rights guidance • current scheduled-airline audit"},
- RUSSIA:{name:"Russia",firs:["UUWV","ULLL","UWWW","USSV","UNNT","UIII","UHWW","UAAA"],status:"REVIEW",validity:"REVIEW",lead:"REVIEW",entryExit:true,note:"Transcontinental Russia is included for Asia route screening; exact permit requirements depend on route, operator status and current Russian AIP/authorization.",source:"Russian AIP/CAA review required"},
+ RUSSIA:{name:"Russia",firs:["UUWV","ULLL","UWWW","USSV","UNNT","UIII","UHWW"],status:"EXCLUDED",validity:"N/A — airline operational restriction",lead:"N/A",entryExit:false,note:"HARD EXCLUSION: Russia is not available for permit processing because the airline cannot operate there. Russian airspace/FIR crossing, if detected, is flagged separately as OPERATIONALLY PROHIBITED / ROUTE REVIEW. No Russian permit request or email is generated.",source:"Airline operational restriction — user-directed hard exclusion"},
  TAJIKISTAN:{name:"Tajikistan",firs:["UTDD"],status:"YES",validity:"72 hours",entryExit:true,note:"UPS operational permit playbook lists Tajikistan as a 72-hour overflight permit handled through Prime Trip Support.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  THAILAND:{name:"Thailand",firs:["VTBB"],status:"YES",landingStatus:"YES",landingNote:"Landing/takeoff permit applies for Thailand; BKK operations handles the landing authorization.",validity:"24 hours",entryExit:true,note:"UPS operational permit playbook lists Thailand as a 24-hour overflight permit for overflight only. BKK takeoff/landing operations are handled separately by UPS. Prime Trip Support handles overflight permit requests.",source:"UPS operational permit playbook",handler:"Prime Trip Support",action:"Send Aircom Template Permit Request to Prime"},
  TIMOR_LESTE:{name:"Timor-Leste",firs:["WAAF"],status:"OMIT",validity:"—",lead:"—",entryExit:false,note:"Omitted from the permit table by operational preference.",source:"User instruction"},
@@ -225,7 +225,15 @@ function detectFirs(p){
    new RegExp('FIR\\s*[/:-]\\s*'+f+'\\b').test(raw)
   )).map(x=>x[0]);
  }
- function routeCountryOverrides(p){
+ function russianAirspaceDetected(p){
+ const russianFirs=(RULES.RUSSIA?.firs||[]).filter(f=>f!=='UAAA'); // UAAA is Kazakhstan Almaty FIR in this permit database; avoid misclassification.
+ const all=(String(p.eet||'')+' '+String(p.route||'')).toUpperCase();
+ const raw=String(p.raw||'').toUpperCase();
+ return russianFirs.some(f=>new RegExp('(?:^|\\s)'+f+'(?:\\d{4}\\b|\\b)').test(all) ||
+  new RegExp('FIR\\s*[/:-]\\s*'+f+'\\b').test(raw));
+}
+
+function routeCountryOverrides(p){
  const r=p.route.toUpperCase(),out=[];
  // UPS operational route matrix: CGN-HKG corridor includes Turkmenistan and Kazakhstan.
  // Add the country rows even when an OFP omits those FIR identifiers; crossing points
@@ -255,7 +263,7 @@ function countryList(p){
  const routePatternCountries=CROSSING_PATTERNS
   .filter(pattern=>(!pattern.origin||pattern.origin===String(p.origin||'').toUpperCase())&&(!pattern.destination||pattern.destination===String(p.destination||'').toUpperCase())&&routeContainsInOrder(routeFixes,pattern.routeIncludes))
   .flatMap(pattern=>Object.keys(pattern.crossings||{}));
- const found=[...new Set([...endpointCountries,...detectFirs(p),...routeCountryOverrides(p),...routePatternCountries])];
+ const found=[...new Set([...endpointCountries,...detectFirs(p),...routeCountryOverrides(p),...routePatternCountries])].filter(country=>country!=='RUSSIA'); // Russia hard-excluded from permit workflow
  const eet=String(p.eet||'').toUpperCase();
  const route=String(p.route||'').toUpperCase();
  const chinaFirs=(RULES.CHINA.firs||[]).filter(x=>x!=="ZJSA");
@@ -1055,9 +1063,11 @@ function isEndpointCountry(country,p){
 function render(){
  const p=parseFpl(byId('fpl').value); if(!p.origin){alert('Please paste a valid ICAO flight plan.');return}
  const countries=countryList(p); window.currentParsed=p; window.currentCountries=countries;
- if(p.origin==='RCTP'||p.destination==='RCTP') window.routeWarning='UPS playbook: China overflight is not permitted when TPE/RCTP is origin or destination.';
- else if(countries.includes('TURKEY')) window.routeWarning='UPS playbook: Turkey requires GENERAL CARGO FLIGHT in Item 18.';
- else window.routeWarning='';
+ const warnings=[];
+ if(p.origin==='RCTP'||p.destination==='RCTP') warnings.push('UPS playbook: China overflight is not permitted when TPE/RCTP is origin or destination.');
+ if(countries.includes('TURKEY')) warnings.push('UPS playbook: Turkey requires GENERAL CARGO FLIGHT in Item 18.');
+ if(russianAirspaceDetected(p)) warnings.push('OPERATIONALLY PROHIBITED / ROUTE REVIEW: Russian airspace/FIR crossing detected. Russia is excluded from permit processing; this route must not be treated as acceptable.');
+ window.routeWarning=warnings.join('\n\n');
  byId('results').classList.remove('hidden');byId('delayCard').classList.remove('hidden');byId('emailCard').classList.add('hidden');
  const permits=countries.filter(c=>{const r=overflightRule(c,p);return r.status==='YES'||r.status==='CONDITIONAL';}).length,review=countries.filter(c=>overflightRule(c,p).status==='REVIEW').length;
  byId('metrics').innerHTML=[['Flight',p.callsign],['Route',p.origin+' → '+p.destination],['Aircraft',p.aircraft||'—'],['Countries',countries.length],['Overflight / Review',permits+' / '+review]].map(x=>'<div class="metric"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
