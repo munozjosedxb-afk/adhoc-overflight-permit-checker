@@ -727,7 +727,7 @@ function ofpFirBoundaryFor(country,p){
  function cumulativeEetForEqualsLine(line,name){
   const target=new RegExp('^\\s*='+name+'\\b','i');
   if(!target.test(line))return null;
-  const m=String(line).match(/\\b(\\d{2})[.:](\\d{2})\\b/);
+  const m=String(line).match(/\b(\d{2})[.:](\d{2})\b/);
   return m?m[1]+m[2]:null;
  }
  const waypointEets=new Map();
