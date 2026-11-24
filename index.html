@@ -957,7 +957,7 @@ function ovfCountryRouteInfo(country,p){
  const segment=routeTokensLocal.slice(entryIndex,exitIndex+1);
  const airwayPattern=/^[A-Z]{1,3}\d{1,4}$/;
  const levelPattern=/^(?:F|FL)\d{3}$/;
- const airways=[...new Set(segment.filter(t=>airwayPattern.test(t)))];
+ const airways=[...new Set(segment.filter(t=>airwayPattern.test(t)&&!levelPattern.test(t)&&!/^N0\\d{3}$/.test(t)))];
  const levels=[...new Set(segment.filter(t=>levelPattern.test(t)).map(t=>t.startsWith('FL')?'F'+t.slice(2):t))];
  // Route level-change tokens take precedence. If none are filed in this segment,
  // retain the FPL cruising level but label it as route-wide, not country-specific.
