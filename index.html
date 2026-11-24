@@ -943,10 +943,36 @@ function anchorClockMap(p){
 }
 function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+' '+['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][Number(d.slice(2,4))-1]+' 20'+d.slice(0,2):'[DATE]'}
 /* Origin-country permit emails intentionally contain NO ENTRY POINT. */
+function ovfCountryRouteInfo(country,p){
+ const boundary=permitBlock(country,p);
+ const routeTokensLocal=routeTokens(p);
+ const entry=String(boundary.entry||'REVIEW').toUpperCase();
+ const exit=String(boundary.exit||'REVIEW').toUpperCase();
+ const entryIndex=routeTokensLocal.indexOf(entry),exitIndex=routeTokensLocal.indexOf(exit);
+ // Never send whole-route airway information when country boundary fixes cannot
+ // be located in the filed route. Mark REVIEW rather than fabricate a segment.
+ if(entry==='REVIEW'||exit==='REVIEW'||entryIndex<0||exitIndex<0||exitIndex<entryIndex){
+  return {airways:'REVIEW — country segment not locatable in filed route',levels:'REVIEW — country segment not locatable in filed route',routeSegment:'REVIEW'};
+ }
+ const segment=routeTokensLocal.slice(entryIndex,exitIndex+1);
+ const airwayPattern=/^[A-Z]{1,3}\d{1,4}$/;
+ const levelPattern=/^(?:F|FL)\d{3}$/;
+ const airways=[...new Set(segment.filter(t=>airwayPattern.test(t)&&!levelPattern.test(t)&&!/^N0\\d{3}$/.test(t)))];
+ const levels=[...new Set(segment.filter(t=>levelPattern.test(t)).map(t=>t.startsWith('FL')?'F'+t.slice(2):t))];
+ // Route level-change tokens take precedence. If none are filed in this segment,
+ // retain the FPL cruising level but label it as route-wide, not country-specific.
+ const levelText=levels.length?levels.join(' / '):(p.level?'FPL LEVEL '+p.level+' (country-specific level change not identified)':'REVIEW');
+ return {
+  airways:airways.length?airways.join(' '):'REVIEW — no airway tokens in country segment',
+  levels:levelText,
+  routeSegment:segment.join(' '),
+  levelSource:levels.length?'Filed level change(s) within country route segment':'FPL cruising level (route-wide; no country-specific level token found)'
+ };
+}
 function emailFor(country,p){
  const x=permitBlock(country,p),arr=addEet(p.eobt,p.eetTotal,p.date),depDay=weekdayNum(p.date),arrDay=weekdayNum(arr.date);
- const airways=[...new Set((p.route||'').match(/\b[A-Z]\d{1,4}\b/g)||[])].join(' ')||'REVIEW';
- const fl=p.level||'REVIEW',date=fmtDate(p.date),dep=p.origin||'[ORIGIN]',dst=p.destination||'[DEST]',num=p.callsign.replace(/^UPS/i,'');
+ const routeInfo=ovfCountryRouteInfo(country,p);
+ const airways=routeInfo.airways,fl=routeInfo.levels,date=fmtDate(p.date),dep=p.origin||'[ORIGIN]',dst=p.destination||'[DEST]',num=p.callsign.replace(/^UPS/i,'');
  const originCountry=destinationCountry(String(p.origin||'').toUpperCase());
  const boundaryLine=country===originCountry
    ? 'EXIT POINT  '+x.exit+'  AT  '+x.exitTime
