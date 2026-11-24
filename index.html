@@ -984,6 +984,24 @@ function extractOFPWaypointLevels(raw){
  }
  return out;
 }
+function extractOFPWaypointAirways(raw){
+ // In the OFP waypoint table, airway rows precede the waypoint they lead to.
+ // Associate each airway row with the next waypoint row, preserving route order.
+ const lines=String(raw||'').split(/\\r?\\n/).map(x=>x.replace(/[\\u00A0\\u2000-\\u200B\\u202F\\u205F\\u3000]/g,' ').trim());
+ const out=[],seen=new Set();
+ const airwayPattern=/^[A-Z]{1,3}\\d{1,4}$/;
+ const fixPattern=/^([A-Z][A-Z0-9]{2,5})\\s+(?:[NS]\\d{2}\\s+|[EW]\\d{3}\\s+)/;
+ for(let i=0;i<lines.length;i++){
+  const airway=(lines[i].match(/^([A-Z]{1,3}\\d{1,4})\\s+(?:[NS]\\d{2}\\s+|[EW]\\d{3}\\s+)/)||[])[1];
+  if(!airway||!airwayPattern.test(airway))continue;
+  for(let j=i+1;j<Math.min(lines.length,i+4);j++){
+   const fix=(lines[j].match(fixPattern)||[])[1];
+   if(fix){const key=fix+'@'+airway;if(!seen.has(key)){seen.add(key);out.push({fix,airway});}break;}
+   if(/^=/.test(lines[j]))break;
+  }
+ }
+ return out;
+}
 function ovfCountryRouteInfo(country,p){
  const boundary=permitBlock(country,p);
  const routeTokensLocal=routeTokens(p);
@@ -991,7 +1009,8 @@ function ovfCountryRouteInfo(country,p){
  const exit=String(boundary.exit||'REVIEW').toUpperCase();
  const routeEntry=routeTokensLocal.indexOf(entry),routeExit=routeTokensLocal.indexOf(exit);
  const ofpRows=extractOFPWaypointLevels(p.raw);
- const ofpFixes=[...new Set(ofpRows.map(x=>x.fix))];
+ const ofpAirwayRows=extractOFPWaypointAirways(p.raw);
+ const ofpFixes=[...new Set([...ofpRows.map(x=>x.fix),...ofpAirwayRows.map(x=>x.fix)])];
  // When entry/exit boundaries are missing from the FPL token list, use OFP waypoint sequence.
  const useOFPBoundary=routeEntry<0||routeExit<0||routeExit<routeEntry;
  const boundarySequence=useOFPBoundary?ofpFixes:routeTokensLocal;
@@ -1003,14 +1022,18 @@ function ovfCountryRouteInfo(country,p){
  const airwayPattern=/^[A-Z]{1,3}\d{1,4}$/;
  const levelPattern=/^(?:F|FL)\d{3,4}$/;
  const routeSegment=useOFPBoundary?[]:routeTokensLocal.slice(routeEntry,routeExit+1);
- const airways=[...new Set(routeSegment.filter(t=>airwayPattern.test(t)&&!levelPattern.test(t)&&!/^N0\d{3}$/.test(t)))];
+ const routeAirways=[...new Set(routeSegment.filter(t=>airwayPattern.test(t)&&!levelPattern.test(t)&&!/^N0\d{3}$/.test(t)))];
+ // OFP waypoint-table airway rows are used when FIR boundary fixes are absent from filed route tokens.
+ // Include the exit waypoint's airway to capture the transition airway into the next FIR.
+ const ofpSegmentAirways=useOFPBoundary?ofpAirwayRows.filter(row=>segment.includes(row.fix)).map(row=>row.airway):[];
+ const airways=[...new Set(useOFPBoundary?ofpSegmentAirways:routeAirways)];
  // Permit email flight level is the level at FIR entry only. Ignore later changes within the FIR.
  const entryOFPLevel=ofpRows.find(row=>row.fix===entry)?.levels?.[0]||'';
  const entryRouteLevel=routeSegment.find(t=>levelPattern.test(t));
  const normalizedRouteLevel=entryRouteLevel?(entryRouteLevel.startsWith('FL')?'F'+entryRouteLevel.slice(2):entryRouteLevel):'';
  const entryLevel=entryOFPLevel||normalizedRouteLevel||p.level||'REVIEW';
  const levelSource=entryOFPLevel?'OFP flight level at FIR entry waypoint':normalizedRouteLevel?'Filed route flight level at FIR entry':'Initial FPL cruising level fallback';
- return {airways:airways.length?airways.join(' '):(useOFPBoundary?'REVIEW — country airway segment not locatable in filed route':'REVIEW — no airway tokens in country segment'),levels:entryLevel,routeSegment:segment.join(' '),levelSource};
+ return {airways:airways.length?airways.join('/'):(useOFPBoundary?'REVIEW — country airway segment not locatable in OFP':'REVIEW — no airway tokens in country segment'),levels:entryLevel,routeSegment:segment.join(' '),levelSource};
 }
 function emailFor(country,p){
  const x=permitBlock(country,p),arr=addEet(p.eobt,p.eetTotal,p.date),depDay=weekdayNum(p.date),arrDay=weekdayNum(arr.date);
