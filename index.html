@@ -961,7 +961,7 @@ function ovfCountryRouteInfo(country,p){
  const levels=[...new Set(segment.filter(t=>levelPattern.test(t)).map(t=>t.startsWith('FL')?'F'+t.slice(2):t))];
  // Route level-change tokens take precedence. If none are filed in this segment,
  // retain the FPL cruising level but label it as route-wide, not country-specific.
- const levelText=levels.length?levels.join(' / '):(p.level||'REVIEW');
+ const levelText=levels.length?levels.join(' / '):(p.level?'FPL LEVEL '+p.level+' (country-specific level change not identified)':'REVIEW');
  return {
   airways:airways.length?airways.join(' '):'REVIEW — no airway tokens in country segment',
   levels:levelText,
