@@ -710,7 +710,7 @@ function ofpFirBoundaryFor(country,p){
   after the final FIR section belonging to this country. The final waypoint in
   the previous FIR section is not the exit point. Example: China exit is RULAD,
   not IGLOT, when RULAD is the first waypoint of the following FIR.
-  - Countries may contain multiple FIR/ UI R sections; internal same-country sections are not boundaries.
+  - Countries may contain multiple FIR and UIR sections; internal same-country sections are not boundaries.
   - FIR/EET anchors may identify the actual entry point when they match a waypoint EET.
   - Boundary times use the waypoint's cumulative OFP EET.
   - If the next FIR/waypoint cannot be identified, exit remains REVIEW (never guess).
