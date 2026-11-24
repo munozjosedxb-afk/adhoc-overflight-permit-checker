@@ -1028,14 +1028,18 @@ function ovfCountryRouteInfo(country,p){
  // when absent, use OFP airway rows for fixes within the entry-to-exit segment.
  const ofpSegmentAirways=ofpAirwayRows.filter(row=>segment.includes(row.fix)).map(row=>row.airway);
  const selectedAirways=routeAirways.length?routeAirways:ofpSegmentAirways;
+ // If the FIR segment ends with a DCT transition and no airway is identified
+ // for that transition, carry forward the last known airway in the segment.
+ const segmentEndsDCT=!useOFPBoundary&&routeSegment.length>0&&routeSegment[routeSegment.length-1]==='DCT';
  const airways=[...new Set(selectedAirways)];
+ const finalAirways=segmentEndsDCT&&airways.length?[airways[airways.length-1]]:airways;
  // Permit email flight level is the level at FIR entry only. Ignore later changes within the FIR.
  const entryOFPLevel=ofpRows.find(row=>row.fix===entry)?.levels?.[0]||'';
  const entryRouteLevel=routeSegment.find(t=>levelPattern.test(t));
  const normalizedRouteLevel=entryRouteLevel?(entryRouteLevel.startsWith('FL')?'F'+entryRouteLevel.slice(2):entryRouteLevel):'';
  const entryLevel=entryOFPLevel||normalizedRouteLevel||p.level||'REVIEW';
  const levelSource=entryOFPLevel?'OFP flight level at FIR entry waypoint':normalizedRouteLevel?'Filed route flight level at FIR entry':'Initial FPL cruising level fallback';
- return {airways:airways.length?airways.join('/'):(useOFPBoundary?'REVIEW — country airway segment not locatable in OFP':'REVIEW — no airway tokens in country segment'),levels:entryLevel,routeSegment:segment.join(' '),levelSource};
+ return {airways:finalAirways.length?finalAirways.join('/'):(useOFPBoundary?'REVIEW — country airway segment not locatable in OFP':'REVIEW — no airway tokens in country segment'),levels:entryLevel,routeSegment:segment.join(' '),levelSource};
 }
 function emailFor(country,p){
  const x=permitBlock(country,p),arr=addEet(p.eobt,p.eetTotal,p.date),depDay=weekdayNum(p.date),arrDay=weekdayNum(arr.date);
