@@ -944,38 +944,40 @@ function anchorClockMap(p){
 function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+' '+['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][Number(d.slice(2,4))-1]+' 20'+d.slice(0,2):'[DATE]'}
 /* Origin-country permit emails intentionally contain NO ENTRY POINT. */
 function extractOFPWaypointLevels(raw){
- // Extract explicit flight levels from the OFP waypoint table and altitude profile.
- // Table pattern: airway/track row carries Fxxx, then named waypoint row,
- // then "=FIX" continuation row. Associate the level with that named fix.
- const lines=String(raw||'').split(/\\r?\\n/).map(x=>x.replace(/[\\u00A0\\u2000-\\u200B\\u202F\\u205F\\u3000]/g,' '));
+ // Extract explicit flight levels from the OFP altitude profile and waypoint table.
+ // Normalize unicode whitespace before parsing.
+ const lines=String(raw||'').split(/\r?\n/).map(x=>x.replace(/[\u00A0\u2000-\u200B\u202F\u205F\u3000]/g,' '));
  const out=[],seen=new Set();
  const add=(fix,level,source)=>{
   fix=String(fix||'').toUpperCase(); level=String(level||'').toUpperCase().replace(/^FL/,'F');
-  if(!/^[A-Z][A-Z0-9]{2,5}$/.test(fix)||!/^F\\d{3,4}$/.test(level))return;
+  if(!/^[A-Z][A-Z0-9]{2,5}$/.test(fix)||!/^F\d{3,4}$/.test(level))return;
   const key=fix+'@'+level;
   if(seen.has(key))return; seen.add(key); out.push({fix,levels:[level],source});
  };
- // Altitude profile: RKSI/240/AGAVO/256/LADIX/321/.../ENIMA/400
- const profileIdx=lines.findIndex(x=>/^\\s*ALTITUDE PROFILE\\s*$/i.test(x));
+ // Altitude profile can be one or multiple lines. Read until the next section heading.
+ const profileIdx=lines.findIndex(x=>/^\s*ALTITUDE PROFILE\s*$/i.test(x));
  if(profileIdx>=0){
-  const profile=lines.slice(profileIdx+1,profileIdx+5).join('').replace(/\\s+/g,'');
+  const profileLines=[];
+  for(let i=profileIdx+1;i<lines.length&&i<profileIdx+12;i++){
+   if(profileLines.length&&/^\s*[A-Z][A-Z0-9 _-]{3,}:?\s*$/.test(lines[i]))break;
+   profileLines.push(lines[i]);
+  }
+  const profile=profileLines.join('/').replace(/\s+/g,'');
   const tokens=profile.split('/').filter(Boolean);
   let previousFix='';
   for(const token of tokens){
-   if(/^\\d{3,4}$/.test(token)&&previousFix)add(previousFix,'F'+token,'altitude profile');
+   if(/^\d{3,4}$/.test(token)&&previousFix)add(previousFix,'F'+token,'altitude profile');
    else if(/^[A-Z][A-Z0-9]{2,5}$/.test(token))previousFix=token;
   }
  }
- // Waypoint table markers are the explicit "=FIX" rows.
+ // Waypoint table marker: =FIX. Find the closest preceding F/FL row without crossing another marker.
  for(let i=0;i<lines.length;i++){
-  const marker=(lines[i].match(/^\\s*=([A-Z][A-Z0-9]{2,5})(?:\\s|$)/)||[])[1];
+  const marker=(lines[i].match(/^\s*=([A-Z][A-Z0-9]{2,5})(?:\s|$)/)||[])[1];
   if(!marker)continue;
   let level='';
-  // The table's level is on the airway row before the named waypoint.
-  // Search backwards only to the previous waypoint marker to avoid crossing fixes.
-  for(let j=i-1;j>=Math.max(0,i-6);j--){
-   if(/^\\s*=[A-Z][A-Z0-9]{2,5}(?:\\s|$)/.test(lines[j]))break;
-   const fl=(lines[j].match(/\\b(?:FL|F)(\\d{3,4})\\b/i)||[])[1];
+  for(let j=i-1;j>=Math.max(0,i-8);j--){
+   if(/^\s*=[A-Z][A-Z0-9]{2,5}(?:\s|$)/.test(lines[j]))break;
+   const fl=(lines[j].match(/\b(?:FL|F)(\d{3,4})\b/i)||[])[1];
    if(fl){level='F'+fl;break;}
   }
   if(level)add(marker,level,'waypoint table');
@@ -987,26 +989,30 @@ function ovfCountryRouteInfo(country,p){
  const routeTokensLocal=routeTokens(p);
  const entry=String(boundary.entry||'REVIEW').toUpperCase();
  const exit=String(boundary.exit||'REVIEW').toUpperCase();
- const entryIndex=routeTokensLocal.indexOf(entry),exitIndex=routeTokensLocal.indexOf(exit);
- // Never send whole-route airway information when country boundary fixes cannot
- // be located in the filed route. Mark REVIEW rather than fabricate a segment.
+ const routeEntry=routeTokensLocal.indexOf(entry),routeExit=routeTokensLocal.indexOf(exit);
+ const ofpRows=extractOFPWaypointLevels(p.raw);
+ const ofpFixes=[...new Set(ofpRows.map(x=>x.fix))];
+ // Some FIR boundary fixes are present in the OFP waypoint table but not in the
+ // parsed route field. Use the OFP waypoint sequence for country-specific level
+ // matching when route-token matching cannot locate both boundaries.
+ const useOFPBoundary=routeEntry<0||routeExit<0||routeExit<routeEntry;
+ const boundarySequence=useOFPBoundary?ofpFixes:routeTokensLocal;
+ const entryIndex=boundarySequence.indexOf(entry),exitIndex=boundarySequence.indexOf(exit);
  if(entry==='REVIEW'||exit==='REVIEW'||entryIndex<0||exitIndex<0||exitIndex<entryIndex){
-  return {airways:'REVIEW — country segment not locatable in filed route',levels:'REVIEW — country segment not locatable in filed route',routeSegment:'REVIEW'};
+  return {airways:'REVIEW — country segment not locatable in filed route/OFP',levels:'REVIEW — country segment not locatable in filed route/OFP',routeSegment:'REVIEW'};
  }
- const segment=routeTokensLocal.slice(entryIndex,exitIndex+1);
+ const segment=boundarySequence.slice(entryIndex,exitIndex+1);
  const airwayPattern=/^[A-Z]{1,3}\d{1,4}$/;
  const levelPattern=/^(?:F|FL)\d{3,4}$/;
- const airways=[...new Set(segment.filter(t=>airwayPattern.test(t)&&!levelPattern.test(t)&&!/^N0\d{3}$/.test(t)))];
- const routeLevels=[...new Set(segment.filter(t=>levelPattern.test(t)).map(t=>t.startsWith('FL')?'F'+t.slice(2):t))];
- const ofpRows=extractOFPWaypointLevels(p.raw);
- const ofpEntry=ofpRows.findIndex(x=>x.fix===entry),ofpExit=ofpRows.findIndex(x=>x.fix===exit);
- let ofpLevels=[];
- if(ofpEntry>=0&&ofpExit>=ofpEntry)ofpLevels=ofpRows.slice(ofpEntry,ofpExit+1).flatMap(row=>row.levels.map(level=>({fix:row.fix,level})));
+ const routeSegment=useOFPBoundary?[]:routeTokensLocal.slice(routeEntry,routeExit+1);
+ const airways=[...new Set(routeSegment.filter(t=>airwayPattern.test(t)&&!levelPattern.test(t)&&!/^N0\d{3}$/.test(t)))];
+ const routeLevels=[...new Set(routeSegment.filter(t=>levelPattern.test(t)).map(t=>t.startsWith('FL')?'F'+t.slice(2):t))];
+ const ofpLevels=ofpRows.filter(row=>segment.includes(row.fix)).flatMap(row=>row.levels.map(level=>({fix:row.fix,level})));
  const distinctOFP=[...new Map(ofpLevels.map(x=>[x.level+'@'+x.fix,x])).values()];
  let levelText='',levelSource='';
  if(distinctOFP.length){
   levelText=distinctOFP.map(x=>x.level+' @ '+x.fix).join(' → ');
-  levelSource='Explicit flight-level tokens extracted from OFP waypoint rows';
+  levelSource='Explicit flight levels extracted from OFP altitude profile/waypoint table';
  }else if(routeLevels.length){
   levelText=routeLevels.join(' / ');
   levelSource='Filed level change(s) within country route segment';
@@ -1014,7 +1020,7 @@ function ovfCountryRouteInfo(country,p){
   levelText=p.level?'FPL LEVEL '+p.level+' (route-wide; OFP waypoint level not identified)':'REVIEW';
   levelSource='FPL cruising level fallback (route-wide; no explicit country-specific level identified)';
  }
- return {airways:airways.length?airways.join(' '):'REVIEW — no airway tokens in country segment',levels:levelText,routeSegment:segment.join(' '),levelSource};
+ return {airways:airways.length?airways.join(' '):(useOFPBoundary?'REVIEW — country airway segment not locatable in filed route':'REVIEW — no airway tokens in country segment'),levels:levelText,routeSegment:segment.join(' '),levelSource};
 }
 function emailFor(country,p){
  const x=permitBlock(country,p),arr=addEet(p.eobt,p.eetTotal,p.date),depDay=weekdayNum(p.date),arrDay=weekdayNum(arr.date);
