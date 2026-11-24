@@ -944,15 +944,41 @@ function anchorClockMap(p){
 function fmtDate(d){return /^\d{6}$/.test(d)?d.slice(4,6)+' '+['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][Number(d.slice(2,4))-1]+' 20'+d.slice(0,2):'[DATE]'}
 /* Origin-country permit emails intentionally contain NO ENTRY POINT. */
 function extractOFPWaypointLevels(raw){
- // Conservative extraction: only explicit F/FL tokens on waypoint rows.
- // Numeric altitude columns are not interpreted without a verified OFP layout.
- const lines=String(raw||'').split(/\r?\n/).map(x=>x.replace(/[\u00A0\u2000-\u200B\u202F\u205F\u3000]/g,' '));
- const out=[];
- for(const line of lines){
-  const fix=(line.match(/^\s*([A-Z][A-Z0-9]{2,5})\s+/i)||[])[1];
-  if(!fix)continue;
-  const fls=[...line.matchAll(/\b(?:FL|F)(\d{3,4})\b/gi)].map(m=>'F'+m[1]);
-  if(fls.length)out.push({fix:fix.toUpperCase(),levels:fls});
+ // Extract explicit flight levels from the OFP waypoint table and altitude profile.
+ // Table pattern: airway/track row carries Fxxx, then named waypoint row,
+ // then "=FIX" continuation row. Associate the level with that named fix.
+ const lines=String(raw||'').split(/\\r?\\n/).map(x=>x.replace(/[\\u00A0\\u2000-\\u200B\\u202F\\u205F\\u3000]/g,' '));
+ const out=[],seen=new Set();
+ const add=(fix,level,source)=>{
+  fix=String(fix||'').toUpperCase(); level=String(level||'').toUpperCase().replace(/^FL/,'F');
+  if(!/^[A-Z][A-Z0-9]{2,5}$/.test(fix)||!/^F\\d{3,4}$/.test(level))return;
+  const key=fix+'@'+level;
+  if(seen.has(key))return; seen.add(key); out.push({fix,levels:[level],source});
+ };
+ // Altitude profile: RKSI/240/AGAVO/256/LADIX/321/.../ENIMA/400
+ const profileIdx=lines.findIndex(x=>/^\\s*ALTITUDE PROFILE\\s*$/i.test(x));
+ if(profileIdx>=0){
+  const profile=lines.slice(profileIdx+1,profileIdx+5).join('').replace(/\\s+/g,'');
+  const tokens=profile.split('/').filter(Boolean);
+  let previousFix='';
+  for(const token of tokens){
+   if(/^\\d{3,4}$/.test(token)&&previousFix)add(previousFix,'F'+token,'altitude profile');
+   else if(/^[A-Z][A-Z0-9]{2,5}$/.test(token))previousFix=token;
+  }
+ }
+ // Waypoint table markers are the explicit "=FIX" rows.
+ for(let i=0;i<lines.length;i++){
+  const marker=(lines[i].match(/^\\s*=([A-Z][A-Z0-9]{2,5})(?:\\s|$)/)||[])[1];
+  if(!marker)continue;
+  let level='';
+  // The table's level is on the airway row before the named waypoint.
+  // Search backwards only to the previous waypoint marker to avoid crossing fixes.
+  for(let j=i-1;j>=Math.max(0,i-6);j--){
+   if(/^\\s*=[A-Z][A-Z0-9]{2,5}(?:\\s|$)/.test(lines[j]))break;
+   const fl=(lines[j].match(/\\b(?:FL|F)(\\d{3,4})\\b/i)||[])[1];
+   if(fl){level='F'+fl;break;}
+  }
+  if(level)add(marker,level,'waypoint table');
  }
  return out;
 }
