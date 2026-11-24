@@ -710,7 +710,7 @@ function ofpFirBoundaryFor(country,p){
   after the final FIR section belonging to this country. The final waypoint in
   the previous FIR section is not the exit point. Example: China exit is RULAD,
   not IGLOT, when RULAD is the first waypoint of the following FIR.
-  - Countries may contain multiple FIRs; internal same-country FIR changes are not boundaries.
+  - Countries may contain multiple FIR/ UI R sections; internal same-country sections are not boundaries.
   - FIR/EET anchors may identify the actual entry point when they match a waypoint EET.
   - Boundary times use the waypoint's cumulative OFP EET.
   - If the next FIR/waypoint cannot be identified, exit remains REVIEW (never guess).
@@ -718,7 +718,7 @@ function ofpFirBoundaryFor(country,p){
  const firSet=new Set((RULES[country]?.firs||[]).map(x=>String(x).toUpperCase()));
  const raw=String(p.raw||'');
  if(!raw||!firSet.size)return null;
- const lines=raw.split(/\r?\n/);
+ const lines=raw.split(/\r?\n/).map(line=>String(line||'').replace(/[\u00A0\u2000-\u200B\u202F\u205F\u3000]/g,' '));
  const anchors=parseEetAnchors(p.eet||'');
  function waypointFromLine(line){
   const m=String(line||'').match(/^\s*([A-Z][A-Z0-9]{2,5})\s+[EW]\d{3}\s+/);
@@ -745,7 +745,7 @@ function ofpFirBoundaryFor(country,p){
  }
  const allSections=[];
  for(let i=0;i<lines.length;i++){
-  const hm=lines[i].match(/FIR(?:\s+[A-Z]+)?\/([A-Z0-9]{2,6})/i);
+  const hm=lines[i].match(/(?:FIR|UIR)(?:\s+[A-Z]+)?\/([A-Z0-9]{2,6})/i);
   if(!hm)continue;
   const fir=hm[1].toUpperCase(), points=[];
   for(let j=i+1;j<lines.length;j++){
