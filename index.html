@@ -1023,12 +1023,14 @@ function ovfCountryRouteInfo(country,p){
  const levelPattern=/^(?:F|FL)\d{3,4}$/;
  const routeSegment=useOFPBoundary?[]:routeTokensLocal.slice(routeEntry,routeExit+1);
  const routeAirways=[...new Set(routeSegment.filter(t=>airwayPattern.test(t)&&!levelPattern.test(t)&&!/^N0\d{3}$/.test(t)))];
- // OFP waypoint-table airway rows are used when FIR boundary fixes are absent from filed route tokens.
- // Include the exit waypoint's airway to capture the transition airway into the next FIR.
- const ofpSegmentAirways=ofpAirwayRows.filter(row=>segment.includes(row.fix)).map(row=>row.airway);
- // Prefer filed route airway tokens, but fall back to OFP airway rows whenever route tokens lack them.
- const selectedAirways=routeAirways.length?routeAirways:ofpSegmentAirways;
- const airways=[...new Set(selectedAirways)];
+ // Permit airway rule: use the last airway leading into the FIR/country entry fix.
+ // OFP airway rows are associated with the waypoint they lead to; therefore the
+ // airway recorded on the entry fix is the inbound airway. Fall back to the last
+ // airway token in the filed route segment if the OFP entry row is unavailable.
+ const entryOFPInboundAirway=ofpAirwayRows.find(row=>row.fix===entry)?.airway||'';
+ const routeInboundAirway=[...routeAirways].reverse()[0]||'';
+ const selectedInboundAirway=entryOFPInboundAirway||routeInboundAirway;
+ const airways=selectedInboundAirway?[selectedInboundAirway]:[];
  // Permit email flight level is the level at FIR entry only. Ignore later changes within the FIR.
  const entryOFPLevel=ofpRows.find(row=>row.fix===entry)?.levels?.[0]||'';
  const entryRouteLevel=routeSegment.find(t=>levelPattern.test(t));
